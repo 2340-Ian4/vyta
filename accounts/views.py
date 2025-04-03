@@ -49,3 +49,6 @@ def signup(request):
             template_data['form'] = form
             return render(request, 'accounts/signup.html',
                 {'template_data': template_data})
+        
+def about(request):
+    return render(request, 'accounts/about.html')

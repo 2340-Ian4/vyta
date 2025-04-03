@@ -65,11 +65,11 @@
           <div class="navbar-nav ms-auto navbar-ml">
             {% if user.is_authenticated %}
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'home.index' %}">Home</a>
-              <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'home.about' %}">About</a>
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'accounts.logout' %}">Logout</a>
             {% else %}
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'accounts.login' %}">Login</a>
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'accounts.signup' %}">Sign Up</a>
+              <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'accounts.about' %}">About</a>
             {% endif %}
           </div>
         </div>
@@ -96,7 +96,7 @@
           <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mb-4">
             <b>LINKS</b>
             <hr />
-            <p><a class="nav-link" href="{% url 'home.about' %}">About</a></p>
+            <p><a class="nav-link" href="{% url 'accounts.about' %}">About</a></p>
           </div>
           <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mb-4">
             <b>CONTACT</b>

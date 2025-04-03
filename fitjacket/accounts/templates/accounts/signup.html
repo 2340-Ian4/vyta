@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container-fluid vh-100">
+  <div class="row h-100">
+    <!-- Left Side: Image -->
+    <div class="col-md-6 d-none d-md-block p-0">
+      <img src="{% static 'img/signupImg.png' %}" alt="Signup Image" class="img-fluid vh-100 w-100" style="object-fit: cover;">
+    </div>
+
+    <!-- Right Side: Signup Form -->
+    <div class="col-md-6 d-flex align-items-center justify-content-center">
+      <div class="w-75 p-4" style="background-color: #F8F9FA; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h2 class="text-center">Sign Up</h2>
+        <hr />
+        <form method="POST">
+          {% csrf_token %}
+          {{ template_data.form.as_p }}
+          <div class="text-center">
+            <button type="submit" class="btn btn-custom-gradient w-100">Sign Up</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

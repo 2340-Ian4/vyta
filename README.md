@@ -1,6 +1,6 @@
-# FitJacket
+# vyta
 
-**FitJacket** is a fitness platform that helps users achieve their health goals through personalized AI workout recommendations, detailed progress tracking, and a vibrant social community. It also includes an admin dashboard for moderation, analytics, and user management.
+**vyta** is a fitness platform that helps users achieve their health goals through personalized AI workout recommendations, detailed progress tracking, and a vibrant social community. It also includes an admin dashboard for moderation, analytics, and user management.
 
 ---
 

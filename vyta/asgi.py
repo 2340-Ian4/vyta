@@ -1,5 +1,5 @@
 """
-ASGI config for fitjacket project.
+ASGI config for vyta project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'fitjacket.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'vyta.settings')
 
 application = get_asgi_application()

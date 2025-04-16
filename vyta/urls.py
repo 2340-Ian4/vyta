@@ -25,4 +25,5 @@ urlpatterns = [
     path('home/', include('home.urls')),
     path('social/', include('social.urls')),
     path('achievements/', include('achievements.urls')),
+    path('workouts/', include('workouts.urls')),
 ]

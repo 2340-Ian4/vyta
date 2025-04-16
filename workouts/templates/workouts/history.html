@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Workout History</h1>
+    <ul>
+        {% for entry in workout_history %}
+            <li>
+                <strong>{{ entry.date }}</strong>: {{ entry.workout }} ({{ entry.duration }})
+            </li>
+        {% endfor %}
+    </ul>
+    <a class="btn btn-secondary" href="{% url 'workouts.index' %}">Back to Workouts</a>
+</div>
+{% endblock content %}

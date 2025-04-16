@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Lifetime Statistics</h1>
+    <ul>
+        <li><strong>Workouts Completed:</strong> {{ stats.workouts_completed }}</li>
+        <li><strong>Calories Burned:</strong> {{ stats.calories_burned }}</li>
+        <li><strong>Active Minutes:</strong> {{ stats.active_minutes }}</li>
+    </ul>
+    <a class="btn btn-secondary" href="{% url 'user.index' %}">Back to Settings</a>
+</div>
+{% endblock content %}

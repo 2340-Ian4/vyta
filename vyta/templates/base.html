@@ -48,9 +48,24 @@
       .navbar {
         border-bottom: 1px solid #ff8c00;
       }
+
+      .navbar img.rounded-circle {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+      }
+
+      .settings-page img.rounded-circle {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+      }
+
+      .settings-page .btn {
+        margin-top: 10px;
+      }
     </style>
   </head>
-
   <body>
     <!-- Header -->
     <nav class="p-0 navbar navbar-dark bg-light navbar-expand-lg">
@@ -58,20 +73,21 @@
         {% if user.is_authenticated %}
         <a class="navbar-brand" href="{% url 'home.index' %}">
           {% endif %}
-          <img src="{% static 'img/logo.png' %}" alt="logo" height="120" />
+          <img src="{% static 'img/logo.png' %}" alt="logo" height="100" />
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
           aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-          <div class="navbar-nav ms-auto navbar-ml">
+          <div class="navbar-nav ms-auto navbar-ml d-flex align-items-center">
             {% if user.is_authenticated %}
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'achievements.index' %}">Achievements</a>
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'workouts.index' %}">Workouts</a>
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'social.feed' %}">Social</a>
-              <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'accounts.logout' %}">Logout</a>
-              
+              <a class="nav-link mx-1 d-flex align-items-center" href="{% url 'user.index' %}">
+                <img src="{% static user_data.profile_pic %}" alt="Profile Picture" class="rounded-circle">
+              </a>
             {% else %}
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'accounts.login' %}">Login</a>
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'accounts.signup' %}">Sign Up</a>

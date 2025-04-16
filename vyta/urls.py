@@ -26,4 +26,5 @@ urlpatterns = [
     path('social/', include('social.urls')),
     path('achievements/', include('achievements.urls')),
     path('workouts/', include('workouts.urls')),
+    path('user/', include('user.urls')),
 ]

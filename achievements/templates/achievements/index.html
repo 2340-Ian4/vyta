@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Achievements</h1>
+
+    <h2>Leaderboard</h2>
+    <ul>
+        {% for entry in leaderboard %}
+            <li>{{ entry.name }} - Goal: {{ entry.goal }} - Progress: {{ entry.progress }}%</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Challenges</h2>
+    <ul>
+        {% for challenge in challenges %}
+            <li>
+                <strong>{{ challenge.title }}</strong>: {{ challenge.description }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Recent Badges</h2>
+    <ul>
+        {% for badge in recent_badges %}
+            <li>
+                <strong>{{ badge.name }}</strong>: {{ badge.description }}
+            </li>
+        {% endfor %}
+    </ul>
+    <a class="btn btn-primary" href="{% url 'achievements.badges' %}">Show More Badges</a>
+</div>
+{% endblock content %}

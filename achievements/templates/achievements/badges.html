@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>All Badges</h1>
+    <ul>
+        {% for badge in all_badges %}
+            <li>
+                <strong>{{ badge.name }}</strong>: {{ badge.description }}
+            </li>
+        {% endfor %}
+    </ul>
+    <a class="btn btn-secondary" href="{% url 'achievements.index' %}">Back to Achievements</a>
+</div>
+{% endblock content %}

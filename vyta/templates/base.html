@@ -55,7 +55,9 @@
     <!-- Header -->
     <nav class="p-0 navbar navbar-dark bg-light navbar-expand-lg">
       <div class="container">
+        {% if user.is_authenticated %}
         <a class="navbar-brand" href="{% url 'home.index' %}">
+          {% endif %}
           <img src="{% static 'img/logo.png' %}" alt="logo" height="120" />
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
@@ -65,8 +67,8 @@
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav ms-auto navbar-ml">
             {% if user.is_authenticated %}
-              <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'home.index' %}">Home</a>
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'achievements.index' %}">Achievements</a>
+              <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'workouts.index' %}">Workouts</a>
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'social.feed' %}">Social</a>
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'accounts.logout' %}">Logout</a>
               

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'home',
     'accounts',
+    'social',
 ]
 
 MIDDLEWARE = [
@@ -129,4 +130,11 @@ STATICFILES_DIRS = [
     BASE_DIR / 'vyta/static/',
 ]
 
-LOGIN_REDIRECT_URL = '/home/'
+LOGIN_REDIRECT_URL = '/home'  # Redirect to home after login
+LOGOUT_REDIRECT_URL = '/accounts/login/'  # Redirect to login after logout
+
+# Ensure sessions are stored in the database
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False

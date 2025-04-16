@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Social Feed</h1>
+    <ul>
+        {% for user in users %}
+            <li>
+                <a href="{% url 'social.profile' user.id %}">{{ user.name }}</a> - Followers: {{ user.followers }}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock content %}

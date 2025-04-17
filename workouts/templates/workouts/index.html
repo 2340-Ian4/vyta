@@ -2,54 +2,54 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1>Workouts</h1>
+    <h1 class="text-primary">Workouts</h1>
 
-    <h2>Progress Towards Goal</h2>
-    <p>Goal: {{ progress.goal }}</p>
-    <div class="progress">
-        <div class="progress-bar" role="progressbar" style="width: '{{ progress.progress|default:0 }}%';" aria-valuenow="{{ progress.progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
+    <h2 class="text-secondary">Progress Towards Goal</h2>
+    <p class="text-muted mb-4">Goal: {{ progress.goal }}</p>
+    <div class="progress mb-4">
+        <div class="progress-bar" role="progressbar" style="width: '{{ progress.progress|default:50 }}%';" aria-valuenow="{{ progress.progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
             {{ progress.progress }}%
         </div>
     </div>
 
-    <h2>Log Workout</h2>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#logWorkoutModal">Log Workout</button>
+    <h2 class="text-orange">Log Workout</h2>
+    <button class="btn btn-custom-gradient mb-4" data-bs-toggle="modal" data-bs-target="#logWorkoutModal">Log Workout</button>
 
     <!-- Log Workout Modal -->
     <div class="modal fade" id="logWorkoutModal" tabindex="-1" aria-labelledby="logWorkoutModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="logWorkoutModalLabel">Log Workout</h5>
+                    <h5 class="modal-title text-primary" id="logWorkoutModalLabel">Log Workout</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form>
-                        <div class="mb-3">
-                            <label for="workoutName" class="form-label">Workout Name</label>
+                        <div class="mb-4">
+                            <label for="workoutName" class="form-label text-secondary">Workout Name</label>
                             <input type="text" class="form-control" id="workoutName" placeholder="Enter workout name">
                         </div>
-                        <div class="mb-3">
-                            <label for="workoutDuration" class="form-label">Duration (minutes)</label>
+                        <div class="mb-4">
+                            <label for="workoutDuration" class="form-label text-secondary">Duration (minutes)</label>
                             <input type="number" class="form-control" id="workoutDuration" placeholder="Enter duration">
                         </div>
-                        <button type="submit" class="btn btn-primary">Log Workout</button>
+                        <button type="submit" class="btn btn-custom-gradient">Log Workout</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <h2>AI-Generated Workouts</h2>
-    <ul>
+    <h2 class="text-orange">AI-Generated Workouts</h2>
+    <ul class="mb-4">
         {% for workout in ai_workouts %}
-            <li>
-                <strong>{{ workout.name }}</strong>: {{ workout.description }}
-                <button class="btn btn-sm btn-secondary">Modify</button>
+            <li class="mb-3">
+                <strong class="text-primary">{{ workout.name }}</strong>: <span class="text-muted">{{ workout.description }}</span>
+                <button class="btn btn-custom-gradient">Modify</button>
             </li>
         {% endfor %}
     </ul>
 
-    <a class="btn btn-secondary mt-3" href="{% url 'workouts.history' %}">View Workout History</a>
+    <a class="btn btn-custom-gradient mb-5" href="{% url 'workouts.history' %}">View Workout History</a>
 </div>
 {% endblock content %}

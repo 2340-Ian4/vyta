@@ -2,10 +2,15 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1>{{ user.name }}'s Profile</h1>
+    <h1 class="text-gradient">{{ user.name }}'s Profile</h1>
     <p>Followers: {{ user.followers }}</p>
-    <a class="btn btn-primary" href="{% url 'social.follow' user.id %}">Follow</a>
-    <a class="btn btn-secondary" href="{% url 'social.unfollow' user.id %}">Unfollow</a>
-    <a class="btn btn-link" href="{% url 'social.feed' %}">Back to Feed</a>
+    {% if is_friend %}
+        <a class="btn btn-custom-gradient" href="{% url 'social.remove_friend' user.id %}">Unfriend</a>
+    {% else %}
+        <a class="btn btn-custom-gradient" href="{% url 'social.add_friend' user.id %}">Add Friend</a>
+    {% endif %}
+    <a class="btn btn-custom-gradient" href="{% url 'social.follow' user.id %}">Follow</a>
+    <a class="btn btn-custom-gradient" href="{% url 'social.unfollow' user.id %}">Unfollow</a>
+    <a class="btn btn-custom-gradient" href="{% url 'social.feed' %}">Back to Feed</a>
 </div>
 {% endblock content %}

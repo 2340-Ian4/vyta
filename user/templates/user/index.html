@@ -12,11 +12,13 @@
             <p><strong>Username:</strong> {{ user_data.username }}</p>
             <p><strong>Email:</strong> {{ user_data.email }}</p>
             <button class="btn btn-primary">Change Profile Picture</button>
+            <a href="{% url 'user.profile' %}" class="btn btn-custom-gradient">View Profile</a>
         </div>
     </div>
 
     <h2>Settings</h2>
     <ul>
+        <li><a href="{% url 'user.profile' %}">View My Profile</a></li>
         <li><a href="{% url 'user.lifetime_stats' %}">Lifetime Statistics</a></li>
         <li><a href="{% url 'accounts.logout' %}">Logout</a></li>
     </ul>

@@ -1,28 +1,85 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="row">
         <!-- Left sidebar with users -->
         <div class="col-md-3">
-            <h3 class="text-gradient">Users</h3>
-            <div class="list-group">
-                {% for user in users %}
-                <a href="{% url 'social.profile' user.id %}" class="list-group-item list-group-item-action user-item">
-                    {{ user.name }} 
-                    <span class="badge rounded-pill">{{ user.followers }} followers</span>
-                </a>
-                {% endfor %}
+            <!-- User Search Section -->
+            <div class="card mb-4" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Search Users</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{% url 'social.search_users' %}" class="mb-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="q" placeholder="Search by username..." value="{{ request.GET.q }}">
+                            <button type="submit" class="btn btn-custom-gradient">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    {% if search_results %}
+                        <div class="list-group">
+                            {% for user in search_results %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <img src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                                             alt="{{ user.username }}'s Profile Picture" 
+                                             class="rounded-circle me-2" 
+                                             style="width: 40px; height: 40px; object-fit: cover;">
+                                        <a href="{% url 'social.profile' user.id %}">{{ user.username }}</a>
+                                    </div>
+                                    <a href="{% url 'social.follow_user' user.id %}" class="btn btn-sm btn-custom-gradient">Follow</a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- New Friends Section -->
-            <h3 class="text-gradient mt-4">Friends</h3>
-            <div class="list-group">
-                {% for friend in friends %}
-                <a href="{% url 'social.profile' friend.id %}" class="list-group-item list-group-item-action user-item">
-                    {{ friend.name }}
-                </a>
-                {% endfor %}
+            <!-- Suggested Users Section -->
+            <div class="card mb-4" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Suggested Users</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for user in suggested_users %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <img src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                                     alt="{{ user.username }}'s Profile Picture" 
+                                     class="rounded-circle me-2" 
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                <span>{{ user.username }}</span>
+                            </div>
+                            <a href="{% url 'social.follow_user' user.id %}" class="btn btn-sm btn-custom-gradient">Follow</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Friends Section -->
+            <div class="card" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Friends</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for friend in friends %}
+                        <a href="{% url 'social.profile' friend.following.id %}" class="list-group-item d-flex align-items-center">
+                            <img src="{% if friend.following.profile.profile_pic %}{{ friend.following.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                                 alt="{{ friend.following.username }}'s Profile Picture" 
+                                 class="rounded-circle me-2" 
+                                 style="width: 40px; height: 40px; object-fit: cover;">
+                            <span>{{ friend.following.username }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -42,34 +99,80 @@
                 </div>
             </div>
 
-            <!-- Posts feed -->
-            <h3 class="text-gradient">Recent Posts</h3>
+            <!-- Activities Feed -->
+            <h3 class="text-gradient mb-4">Recent Activities</h3>
+            {% for activity in activities %}
+            <div class="card mb-3 activity-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <img src="{% if activity.user.profile.profile_pic %}{{ activity.user.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                             alt="{{ activity.user.username }}'s Profile Picture" 
+                             class="rounded-circle me-2" 
+                             style="width: 40px; height: 40px; object-fit: cover;">
+                        <div>
+                            <h6 class="mb-0">{{ activity.user.username }}</h6>
+                            <small class="text-muted">{{ activity.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                    
+                    {% if activity.activity_type == 'post' %}
+                        <p class="mb-0">{{ activity.details.post_content }}</p>
+                    {% elif activity.activity_type == 'like' %}
+                        <p class="mb-0">liked a post by {{ activity.details.post_author }}</p>
+                    {% elif activity.activity_type == 'comment' %}
+                        <p class="mb-0">commented on a post by {{ activity.details.post_author }}: "{{ activity.details.comment_content }}"</p>
+                    {% elif activity.activity_type == 'workout' %}
+                        <p class="mb-0">completed a workout: {{ activity.details.workout_name }}</p>
+                    {% elif activity.activity_type == 'achievement' %}
+                        <p class="mb-0">earned an achievement: {{ activity.details.achievement_name }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Posts Feed -->
+            <h3 class="text-gradient mb-4">Recent Posts</h3>
             {% for post in posts %}
             <div class="card mb-3 post-card">
                 <div class="card-body">
-                    <h6 class="card-subtitle mb-2 author-name">{{ post.author }}</h6>
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{% if post.author.profile.profile_pic %}{{ post.author.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                             alt="{{ post.author.username }}'s Profile Picture" 
+                             class="rounded-circle me-2" 
+                             style="width: 40px; height: 40px; object-fit: cover;">
+                        <div>
+                            <h6 class="mb-0">{{ post.author.username }}</h6>
+                            <small class="text-muted">{{ post.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                    
                     <p class="card-text">{{ post.content }}</p>
                     
                     <!-- Like section -->
                     <div class="post-actions mt-3">
                         <form method="POST" action="{% url 'social.like_post' post.id %}" class="d-inline">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm {% if 1 in post.likes %}btn-custom-gradient{% else %}btn-outline-secondary{% endif %}">
-                                <i class="fas fa-heart"></i> {{ post.likes|length }} Likes
+                            {% with user_liked=post.likes.filter user=request.user %}
+                            <button type="submit" class="btn btn-sm {% if user_liked %}btn-custom-gradient{% else %}btn-outline-secondary{% endif %}">
+                                <i class="fas fa-heart"></i> {{ post.likes_count }} Likes
                             </button>
+                            {% endwith %}
                         </form>
                     </div>
 
                     <!-- Comments section -->
                     <div class="comments-section mt-3">
-                        {% if post.comments %}
-                            <h6 class="text-muted">Comments:</h6>
-                            {% for comment in post.comments %}
-                                <div class="comment mb-2">
-                                    <strong class="author-name">{{ comment.author }}</strong>
-                                    <span>{{ comment.content }}</span>
-                                </div>
-                            {% endfor %}
+                        {% for comment in post.comments.all|slice:":3" %}
+                            <div class="comment mb-2">
+                                <strong>{{ comment.user.username }}</strong>
+                                <span>{{ comment.content }}</span>
+                            </div>
+                        {% endfor %}
+
+                        {% if post.comments_count > 3 %}
+                            <div class="text-center">
+                                <a href="#" class="text-muted">View all {{ post.comments_count }} comments</a>
+                            </div>
                         {% endif %}
 
                         <!-- Comment form -->
@@ -97,7 +200,7 @@
         font-weight: bold;
     }
 
-    .post-form-card {
+    .post-form-card, .activity-card, .post-card {
         border: none;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         border-radius: 15px;
@@ -115,41 +218,9 @@
         box-shadow: 0 0 0 0.2rem rgba(0, 206, 209, 0.25);
     }
 
-    .post-card {
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s ease;
-        border-top: 4px solid transparent;
-        background: linear-gradient(white, white) padding-box,
-                    linear-gradient(45deg, #FFD700, #FF8C00, #FF1493, #00CED1) border-box;
-    }
-
-    .post-card:hover {
+    .post-card:hover, .activity-card:hover {
         transform: translateY(-2px);
-    }
-
-    .author-name {
-        color: #FF8C00;
-        font-weight: 600;
-    }
-
-    .user-item {
-        border: none;
-        margin-bottom: 5px;
-        border-radius: 10px;
-        transition: all 0.3s ease;
-    }
-
-    .user-item:hover {
-        background: linear-gradient(45deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
-        transform: translateX(5px);
-    }
-
-    .badge {
-        background: linear-gradient(45deg, #00CED1, #FF1493);
-        color: white;
-        font-weight: 500;
+        transition: transform 0.2s ease;
     }
 
     .btn-custom-gradient {

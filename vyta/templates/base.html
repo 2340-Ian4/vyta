@@ -85,9 +85,17 @@
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'achievements.index' %}">Achievements</a>
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'workouts.index' %}">Workouts</a>
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'social.feed' %}">Social</a>
-              <a class="nav-link mx-1 d-flex align-items-center" href="{% url 'user.index' %}">
-                <img src="{% static user_data.profile_pic %}" alt="Profile Picture" class="rounded-circle">
-              </a>
+              <div class="nav-item dropdown">
+                <a class="nav-link mx-1 d-flex align-items-center dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <img src="{% static user_data.profile_pic %}" alt="Profile Picture" class="rounded-circle">
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                  <li><a class="dropdown-item" href="{% url 'user.profile' %}">My Profile</a></li>
+                  <li><a class="dropdown-item" href="{% url 'user.index' %}">Settings</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="{% url 'accounts.logout' %}">Logout</a></li>
+                </ul>
+              </div>
             {% else %}
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'accounts.login' %}">Login</a>
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'accounts.signup' %}">Sign Up</a>

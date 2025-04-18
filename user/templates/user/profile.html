@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Profile Header Section -->
+    <div class="card mb-4" style="border-color: #FF8C00; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <img src="{% if profile.profile_pic %}{{ profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                         alt="{{ profile_user.username }}'s Profile Picture" 
+                         class="rounded-circle img-fluid mb-3" 
+                         style="width: 180px; height: 180px; object-fit: cover; border: 3px solid #00CED1;">
+                    
+                    {% if is_own_profile %}
+                        <button class="btn btn-custom-gradient w-100 mb-2">Change Photo</button>
+                    {% else %}
+                        <button class="btn btn-custom-gradient w-100 mb-2">Follow</button>
+                    {% endif %}
+                </div>
+                <div class="col-md-9">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2>{{ profile_user.username }}'s Profile</h2>
+                        {% if is_own_profile %}
+                            <a href="{% url 'user.index' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <p><strong>Name:</strong> {{ profile_user.first_name }} {{ profile_user.last_name }}</p>
+                        {% if is_own_profile or user.is_staff %}
+                            <p><strong>Email:</strong> {{ profile_user.email }}</p>
+                        {% endif %}
+                        <p><strong>Location:</strong> {{ profile.location|default:"Not specified" }}</p>
+                        <p><strong>Fitness Level:</strong> {{ profile.get_fitness_level_display }}</p>
+                    </div>
+                    <div>
+                        <h5>Bio</h5>
+                        <p>{{ profile.bio|default:"No bio available." }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                <div class="card-body text-center">
+                    <h3 class="card-title" style="color: #00CED1;">{{ profile.workouts_completed }}</h3>
+                    <p class="card-text">Workouts Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                <div class="card-body text-center">
+                    <h3 class="card-title" style="color: #00CED1;">{{ profile.calories_burned }}</h3>
+                    <p class="card-text">Calories Burned</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                <div class="card-body text-center">
+                    <h3 class="card-title" style="color: #00CED1;">{{ profile.active_minutes }}</h3>
+                    <p class="card-text">Active Minutes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Achievements Section -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Achievements</h5>
+                </div>
+                <div class="card-body">
+                    {% if achievements %}
+                        <ul class="list-group list-group-flush">
+                            {% for achievement in achievements %}
+                                <li class="list-group-item">
+                                    <strong>{{ achievement.name }}</strong> - {{ achievement.description }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'achievements.index' %}" class="btn btn-custom-gradient">View All Achievements</a>
+                        </div>
+                    {% else %}
+                        <p class="text-center">No achievements yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Workouts Section -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Recent Workouts</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_workouts %}
+                        <ul class="list-group list-group-flush">
+                            {% for workout in recent_workouts %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>{{ workout.name }}</strong>
+                                            <p class="text-muted mb-0">{{ workout.duration }}</p>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">{{ workout.date }}</small>
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'workouts.index' %}" class="btn btn-custom-gradient">View All Workouts</a>
+                        </div>
+                    {% else %}
+                        <p class="text-center">No workouts recorded yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Stats Section -->
+    <div class="row mt-4 mb-5">
+        <div class="col-md-12">
+            <div class="card" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Social Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4>{{ profile.followers_count }}</h4>
+                            <p>Followers</p>
+                        </div>
+                        <div class="col-6">
+                            <h4>{{ profile.following_count }}</h4>
+                            <p>Following</p>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'social.feed' %}" class="btn btn-custom-gradient">View Social Feed</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %} 

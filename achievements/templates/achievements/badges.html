@@ -1,15 +1,57 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1>All Badges</h1>
-    <ul>
-        {% for badge in all_badges %}
-            <li>
-                <strong>{{ badge.name }}</strong>: {{ badge.description }}
-            </li>
-        {% endfor %}
-    </ul>
-    <a class="btn btn-secondary" href="{% url 'achievements.index' %}">Back to Achievements</a>
+<header class="masthead" style="background: linear-gradient(45deg, #00CED1, #FF1493); background-size: 200%; text-white text-center py-4">
+    <div class="container d-flex align-items-center flex-column pt-2">
+        <h2 class="text-white">All Badges</h2>
+        <p class="text-white">Your Collection of Achievements</p>
+    </div>
+</header>
+
+<div class="p-3">
+    <div class="container">
+        <div class="row">
+            {% for badge in all_badges %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header" style="background: linear-gradient(45deg, {% cycle '#00CED1' '#FFD700' %}, {% cycle '#FF1493' '#FF8C00' %}); color: white;">
+                        <h3 class="card-title mb-0">{{ badge.name }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-medal fa-3x" style="background: linear-gradient(45deg, {% cycle '#00CED1' '#FFD700' %}, {% cycle '#FF1493' '#FF8C00' %}); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-right: 1rem;"></i>
+                            <div>
+                                <p class="mb-0">{{ badge.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a class="btn btn-custom-gradient" href="{% url 'achievements.index' %}">
+                <i class="fas fa-arrow-left me-2"></i>Back to Achievements
+            </a>
+        </div>
+    </div>
 </div>
+
+<style>
+    .card {
+        border-radius: 10px;
+        transition: transform 0.2s;
+        border: none;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+        border: none;
+    }
+    .card-body {
+        background-color: #fff;
+    }
+</style>
 {% endblock content %}

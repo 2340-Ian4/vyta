@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">User Profiles</h1>
+    
+    <div class="row">
+        {% if profiles %}
+            {% for profile in profiles %}
+                <div class="col-md-4 mb-4">
+                    <div class="card" style="border-color: #FF8C00; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                        <div class="card-body text-center">
+                            <img src="{% if profile.profile_pic %}{{ profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                                 alt="{{ profile.user.username }}'s Profile Picture" 
+                                 class="rounded-circle img-fluid mb-3" 
+                                 style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #00CED1;">
+                            <h5 class="card-title">{{ profile.user.username }}</h5>
+                            <p class="card-text">{{ profile.bio|truncatechars:100|default:"No bio available." }}</p>
+                            <div class="d-flex justify-content-between mt-3">
+                                <span><strong>Workouts:</strong> {{ profile.workouts_completed }}</span>
+                                <span><strong>Followers:</strong> {{ profile.followers_count }}</span>
+                            </div>
+                            <a href="{% url 'profiles.user_detail' profile.user.username %}" class="btn btn-custom-gradient mt-3 w-100">View Profile</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center">
+                <p>No profiles found.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %} 

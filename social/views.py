@@ -7,23 +7,8 @@ users = [
     {'id': 2, 'name': 'Bob', 'followers': 5},
 ]
 
-def profile(request, id):
-    user = next((u for u in users if u['id'] == id), None)
-    if not user:
-        return HttpResponse("User not found", status=404)
-    return render(request, 'social/profile.html', {'user': user})
-
-def follow(request, id):
-    user = next((u for u in users if u['id'] == id), None)
-    if user:
-        user['followers'] += 1
-    return redirect('social.profile', id=id)
-
-def unfollow(request, id):
-    user = next((u for u in users if u['id'] == id), None)
-    if user and user['followers'] > 0:
-        user['followers'] -= 1
-    return redirect('social.profile', id=id)
+# Profile-related functions have been moved to the profiles app
 
 def feed(request):
+    """View the social feed, with links to profiles"""
     return render(request, 'social/feed.html', {'users': users})

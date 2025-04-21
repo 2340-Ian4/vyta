@@ -24,6 +24,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('home/', include('home.urls')),
     path('social/', include('social.urls')),
+    path('profiles/', include('profiles.urls')),
     path('achievements/', include('achievements.urls')),
     path('workouts/', include('workouts.urls')),
     path('user/', include('user.urls')),

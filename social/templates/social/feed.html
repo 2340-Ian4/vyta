@@ -6,9 +6,13 @@
     <ul>
         {% for user in users %}
             <li>
-                <a href="{% url 'social.profile' user.id %}">{{ user.name }}</a> - Followers: {{ user.followers }}
+                <a href="{% url 'profiles.social_profile' user.id %}">{{ user.name }}</a> - Followers: {{ user.followers }}
             </li>
         {% endfor %}
     </ul>
+    
+    <div class="mt-4">
+        <a href="{% url 'profiles.list' %}" class="btn btn-custom-gradient">View All User Profiles</a>
+    </div>
 </div>
 {% endblock content %}

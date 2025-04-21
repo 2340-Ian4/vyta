@@ -1,55 +1,149 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-5">
-    <h1>Workouts</h1>
-
-    <h2>Progress Towards Goal</h2>
-    <p>Goal: {{ progress.goal }}</p>
-    <div class="progress">
-        <div class="progress-bar" role="progressbar" style="width: '{{ progress.progress|default:0 }}%';" aria-valuenow="{{ progress.progress|default:0 }}" aria-valuemin="0" aria-valuemax="100">
-            {{ progress.progress }}%
-        </div>
-    </div>
-
-    <h2>Log Workout</h2>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#logWorkoutModal">Log Workout</button>
-
-    <!-- Log Workout Modal -->
-    <div class="modal fade" id="logWorkoutModal" tabindex="-1" aria-labelledby="logWorkoutModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="logWorkoutModalLabel">Log Workout</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="row">
+        <!-- Progress Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient text-white">
+                    <h3 class="mb-0">Progress Towards Goal</h3>
                 </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="mb-3">
-                            <label for="workoutName" class="form-label">Workout Name</label>
-                            <input type="text" class="form-control" id="workoutName" placeholder="Enter workout name">
+                <div class="card-body">
+                    {% if goal %}
+                        <h5 class="card-title">{{ goal.get_goal_type_display }}</h5>
+                        <p class="card-text">Target: {{ goal.target }}</p>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-gradient" role="progressbar" 
+                                 data-progress="{{ goal.progress }}"
+                                 aria-valuenow="{{ goal.progress }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                {{ goal.progress }}%
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="workoutDuration" class="form-label">Duration (minutes)</label>
-                            <input type="number" class="form-control" id="workoutDuration" placeholder="Enter duration">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Log Workout</button>
-                    </form>
+                        <a href="{% url 'workouts.goal' %}" class="btn btn-custom-gradient">Update Goal</a>
+                    {% else %}
+                        <p class="card-text">No goal set yet.</p>
+                        <a href="{% url 'workouts.goal' %}" class="btn btn-custom-gradient">Set Goal</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient text-white">
+                    <h3 class="mb-0">Quick Actions</h3>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'workouts.log' %}" class="btn btn-custom-gradient mb-3">Log New Workout</a>
+                    <a href="{% url 'workouts.history' %}" class="btn btn-custom-gradient mb-3">View History</a>
                 </div>
             </div>
         </div>
     </div>
 
-    <h2>AI-Generated Workouts</h2>
-    <ul>
-        {% for workout in ai_workouts %}
-            <li>
-                <strong>{{ workout.name }}</strong>: {{ workout.description }}
-                <button class="btn btn-sm btn-secondary">Modify</button>
-            </li>
-        {% endfor %}
-    </ul>
+    <!-- Recent Workouts -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient text-white">
+                    <h3 class="mb-0">Recent Workouts</h3>
+                </div>
+                <div class="card-body">
+                    {% if workouts %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Workout</th>
+                                        <th>Duration</th>
+                                        <th>Calories</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for workout in workouts %}
+                                        <tr>
+                                            <td>{{ workout.date|date:"M d, Y" }}</td>
+                                            <td>{{ workout.name }}</td>
+                                            <td>{{ workout.duration }} mins</td>
+                                            <td>{{ workout.calories_burned|default:"-" }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center">No workouts logged yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <a class="btn btn-secondary mt-3" href="{% url 'workouts.history' %}">View Workout History</a>
+    <!-- AI Workout Suggestions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient text-white">
+                    <h3 class="mb-0">AI-Generated Workouts</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for workout in ai_workouts %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ workout.name }}</h5>
+                                        <p class="card-text">{{ workout.description }}</p>
+                                        <button class="btn btn-custom-gradient">Start Workout</button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    .bg-gradient {
+        background: linear-gradient(45deg, #FFD700, #FF8C00, #FF1493, #00CED1);
+        background-size: 200%;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 15px;
+        transition: transform 0.2s;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .progress {
+        height: 25px;
+        border-radius: 12px;
+    }
+    
+    .progress-bar {
+        border-radius: 12px;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBar = document.querySelector('.progress-bar');
+    if (progressBar) {
+        progressBar.style.width = progressBar.dataset.progress + '%';
+    }
+});
+</script>
 {% endblock content %}

@@ -1,33 +1,119 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1>Achievements</h1>
+<header class="masthead" style="background: linear-gradient(45deg, #00CED1, #FF1493); background-size: 200%; text-white text-center py-4">
+    <div class="container d-flex align-items-center flex-column pt-2">
+        <h2 class="text-white">Achievements</h2>
+        <p class="text-white">Track Your Progress!</p>
+    </div>
+</header>
 
-    <h2>Leaderboard</h2>
-    <ul>
-        {% for entry in leaderboard %}
-            <li>{{ entry.name }} - Goal: {{ entry.goal }} - Progress: {{ entry.progress }}%</li>
-        {% endfor %}
-    </ul>
+<div class="p-3">
+    <div class="container">
+        <div class="row">
+            <!-- Leaderboard Section -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header" style="background: linear-gradient(45deg, #FFD700, #FF8C00); color: white;">
+                        <h3 class="card-title mb-0">Leaderboard</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for entry in leaderboard %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-1">{{ entry.name }}</h5>
+                                        <span class="badge" style="background: linear-gradient(45deg, #FF1493, #00CED1); color: white;">{{ entry.progress }}%</span>
+                                    </div>
+                                    <small class="text-muted">Goal: {{ entry.goal }}</small>
+                                    <div class="progress mt-2">
+                                        <div class="progress-bar" role="progressbar" style="width: {{ entry.progress }}%; background: linear-gradient(45deg, #FFD700, #FF8C00);" 
+                                             aria-valuenow="{{ entry.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <h2>Challenges</h2>
-    <ul>
-        {% for challenge in challenges %}
-            <li>
-                <strong>{{ challenge.title }}</strong>: {{ challenge.description }}
-            </li>
-        {% endfor %}
-    </ul>
+            <!-- Challenges Section -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header" style="background: linear-gradient(45deg, #FF1493, #00CED1); color: white;">
+                        <h3 class="card-title mb-0">Challenges</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for challenge in challenges %}
+                                <div class="list-group-item">
+                                    <h5 class="mb-1">{{ challenge.title }}</h5>
+                                    <p class="mb-1">{{ challenge.description }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <h2>Recent Badges</h2>
-    <ul>
-        {% for badge in recent_badges %}
-            <li>
-                <strong>{{ badge.name }}</strong>: {{ badge.description }}
-            </li>
-        {% endfor %}
-    </ul>
-    <a class="btn btn-primary" href="{% url 'achievements.badges' %}">Show More Badges</a>
+            <!-- Badges Section -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header" style="background: linear-gradient(45deg, #FFD700, #FF1493); color: white;">
+                        <h3 class="card-title mb-0">Recent Badges</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for badge in recent_badges %}
+                                <div class="list-group-item">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-medal fa-2x" style="background: linear-gradient(45deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-right: 1rem;"></i>
+                                        <div>
+                                            <h5 class="mb-1">{{ badge.name }}</h5>
+                                            <p class="mb-1">{{ badge.description }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a class="btn btn-custom-gradient" href="{% url 'achievements.badges' %}">
+                                <i class="fas fa-trophy me-2"></i>Show More Badges
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    .card {
+        border-radius: 10px;
+        transition: transform 0.2s;
+        border: none;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+        border: none;
+    }
+    .list-group-item {
+        border-radius: 5px;
+        margin-bottom: 5px;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+        background-color: #f0f0f0;
+    }
+    .badge {
+        border-radius: 15px;
+        padding: 5px 10px;
+    }
+</style>
 {% endblock content %}

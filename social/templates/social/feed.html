@@ -2,6 +2,89 @@
 
 {% block content %}
 <div class="container mt-5">
+    <div class="row">
+        <!-- Left sidebar with users -->
+        <div class="col-md-3">
+            <h3 class="text-gradient">Users</h3>
+            <div class="list-group">
+                {% for user in users %}
+                <a href="{% url 'social.profile' user.id %}" class="list-group-item list-group-item-action user-item">
+                    {{ user.name }} 
+                    <span class="badge rounded-pill">{{ user.followers }} followers</span>
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- New Friends Section -->
+            <h3 class="text-gradient mt-4">Friends</h3>
+            <div class="list-group">
+                {% for friend in friends %}
+                <a href="{% url 'social.profile' friend.id %}" class="list-group-item list-group-item-action user-item">
+                    {{ friend.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="col-md-9">
+            <!-- Post creation form -->
+            <div class="card mb-4 post-form-card">
+                <div class="card-body">
+                    <h5 class="card-title text-gradient">Create a Post</h5>
+                    <form method="POST" action="{% url 'social.create_post' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <textarea class="form-control custom-textarea" name="content" rows="3" placeholder="What's on your mind?"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-custom-gradient mt-2">Post</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Posts feed -->
+            <h3 class="text-gradient">Recent Posts</h3>
+            {% for post in posts %}
+            <div class="card mb-3 post-card">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 author-name">{{ post.author }}</h6>
+                    <p class="card-text">{{ post.content }}</p>
+                    
+                    <!-- Like section -->
+                    <div class="post-actions mt-3">
+                        <form method="POST" action="{% url 'social.like_post' post.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm {% if 1 in post.likes %}btn-custom-gradient{% else %}btn-outline-secondary{% endif %}">
+                                <i class="fas fa-heart"></i> {{ post.likes|length }} Likes
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Comments section -->
+                    <div class="comments-section mt-3">
+                        {% if post.comments %}
+                            <h6 class="text-muted">Comments:</h6>
+                            {% for comment in post.comments %}
+                                <div class="comment mb-2">
+                                    <strong class="author-name">{{ comment.author }}</strong>
+                                    <span>{{ comment.content }}</span>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <!-- Comment form -->
+                        <form method="POST" action="{% url 'social.add_comment' post.id %}" class="mt-2">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="text" class="form-control custom-textarea" name="comment" placeholder="Add a comment...">
+                                <button type="submit" class="btn btn-custom-gradient">Comment</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     <h1>Social Feed</h1>
     <ul>
         {% for user in users %}
@@ -15,4 +98,119 @@
         <a href="{% url 'profiles.list' %}" class="btn btn-custom-gradient">View All User Profiles</a>
     </div>
 </div>
+
+<style>
+    .text-gradient {
+        background: linear-gradient(45deg, #FFD700, #FF8C00, #FF1493, #00CED1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: bold;
+    }
+
+    .post-form-card {
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
+        border-left: 4px solid #00CED1;
+    }
+
+    .custom-textarea {
+        border: 2px solid #eee;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .custom-textarea:focus {
+        border-color: #00CED1;
+        box-shadow: 0 0 0 0.2rem rgba(0, 206, 209, 0.25);
+    }
+
+    .post-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+        border-top: 4px solid transparent;
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(45deg, #FFD700, #FF8C00, #FF1493, #00CED1) border-box;
+    }
+
+    .post-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .author-name {
+        color: #FF8C00;
+        font-weight: 600;
+    }
+
+    .user-item {
+        border: none;
+        margin-bottom: 5px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .user-item:hover {
+        background: linear-gradient(45deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
+        transform: translateX(5px);
+    }
+
+    .badge {
+        background: linear-gradient(45deg, #00CED1, #FF1493);
+        color: white;
+        font-weight: 500;
+    }
+
+    .btn-custom-gradient {
+        background: linear-gradient(45deg, #FFD700, #FF8C00, #FF1493, #00CED1);
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+        background-size: 200% auto;
+    }
+
+    .btn-custom-gradient:hover {
+        background-position: right center;
+        color: white;
+        transform: scale(1.05);
+    }
+
+    .comments-section {
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+    }
+
+    .comment {
+        background-color: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 0.9em;
+    }
+
+    .post-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .btn-outline-secondary {
+        border-color: #FF8C00;
+        color: #FF8C00;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #FF8C00;
+        border-color: #FF8C00;
+        color: white;
+    }
+
+    .input-group .btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+</style>
 {% endblock content %}

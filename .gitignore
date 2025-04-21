@@ -1,6 +1,7 @@
 # Python bytecode files
 __pycache__/
 *.py[cod]
+*.pyc
 *$py.class
 
 # Django specific files

@@ -65,6 +65,7 @@
         margin-top: 10px;
       }
     </style>
+    {% block extra_css %}{% endblock extra_css %}
   </head>
   <body>
     <!-- Header -->
@@ -87,7 +88,13 @@
               <a class="nav-link btn btn-custom-gradient mx-1" href="{% url 'social.feed' %}">Social</a>
               <div class="nav-item dropdown">
                 <a class="nav-link mx-1 d-flex align-items-center dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  <img src="{% static user_data.profile_pic %}" alt="Profile Picture" class="rounded-circle">
+                  {% if user_data.profile_pic and 'http' in user_data.profile_pic %}
+                    <img src="{{ user_data.profile_pic }}" alt="Profile Picture" class="rounded-circle">
+                  {% elif user_data.profile_pic and '/' in user_data.profile_pic %}
+                    <img src="{% if user_data.profile_pic|slice:':4' == 'img/' %}{% static user_data.profile_pic %}{% else %}{{ user_data.profile_pic }}{% endif %}" alt="Profile Picture" class="rounded-circle">
+                  {% else %}
+                    <img src="{% static 'img/default-profile.png' %}" alt="Profile Picture" class="rounded-circle">
+                  {% endif %}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                   <li><a class="dropdown-item" href="{% url 'user.profile' %}">My Profile</a></li>

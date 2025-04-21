@@ -45,6 +45,14 @@ def profile(request, id):
     current_user = users[0]  # Hardcoded as Alice for demo
     is_friend = id in current_user['friends']
     
+    # Check if current user is following this user
+    # For the demo, we'll consider current user is following if followers > 0
+    is_following = False
+    if 'following_users' not in current_user:
+        current_user['following_users'] = [2]  # Default Alice is following Bob
+    
+    is_following = id in current_user['following_users']
+    
     # Add sample fitness data to match our enhanced profile template
     profile_user['fitness_level'] = 'Intermediate'
     profile_user['location'] = 'New York'
@@ -66,20 +74,42 @@ def profile(request, id):
         {'date': '2023-04-12', 'name': 'Weight Training', 'duration': '45 minutes'},
     ]
     
-    return render(request, 'profiles/social_profile.html', {'profile_user': profile_user, 'is_friend': is_friend})
+    return render(request, 'profiles/social_profile.html', {
+        'profile_user': profile_user, 
+        'is_friend': is_friend,
+        'is_following': is_following
+    })
 
 def follow(request, id):
     user = next((u for u in users if u['id'] == id), None)
+    current_user = users[0]  # Hardcoded as Alice for demo
+    
     if user:
+        # Add to followers
         user['followers'] += 1
+        
+        # Add to current user's following list
+        if 'following_users' not in current_user:
+            current_user['following_users'] = []
+        
+        if id not in current_user['following_users']:
+            current_user['following_users'].append(id)
+            
     return redirect('social.profile', id=id)
 
 def unfollow(request, id):
     user = next((u for u in users if u['id'] == id), None)
+    current_user = users[0]  # Hardcoded as Alice for demo
+    
     if user and user['followers'] > 0:
+        # Reduce followers
         user['followers'] -= 1
+        
+        # Remove from current user's following list
+        if 'following_users' in current_user and id in current_user['following_users']:
+            current_user['following_users'].remove(id)
+            
     return redirect('social.profile', id=id)
-# Profile-related functions have been moved to the profiles app
 
 def add_friend(request, id):
     user = next((u for u in users if u['id'] == id), None)

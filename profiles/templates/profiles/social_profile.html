@@ -24,14 +24,16 @@
                             </a>
                         {% endif %}
                         
-                        <div class="d-flex justify-content-between gap-2">
-                            <a class="btn btn-custom-gradient" href="{% url 'social.follow' profile_user.id %}">
-                                <i class="fas fa-user-check"></i> Follow
-                            </a>
-                            <a class="btn btn-outline-secondary" href="{% url 'social.unfollow' profile_user.id %}">
+                        <!-- Follow/Unfollow toggle button -->
+                        {% if is_following %}
+                            <a class="btn btn-outline-secondary w-100" href="{% url 'social.unfollow' profile_user.id %}">
                                 <i class="fas fa-user-times"></i> Unfollow
                             </a>
-                        </div>
+                        {% else %}
+                            <a class="btn btn-custom-gradient w-100" href="{% url 'social.follow' profile_user.id %}">
+                                <i class="fas fa-user-check"></i> Follow
+                            </a>
+                        {% endif %}
                         
                         <a class="btn btn-outline-primary" href="{% url 'social.feed' %}">
                             <i class="fas fa-arrow-left"></i> Back to Feed

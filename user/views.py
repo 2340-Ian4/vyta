@@ -7,6 +7,28 @@ from django.contrib.auth.forms import PasswordChangeForm
 from .models import UserProfile
 
 @login_required
+def upload_profile_pic(request):
+    """Handle profile picture uploads from the profile page"""
+    if request.method == 'POST' and request.FILES.get('profile_pic'):
+        try:
+            profile, created = UserProfile.objects.get_or_create(user=request.user)
+            # Get the uploaded file
+            profile_pic = request.FILES['profile_pic']
+            
+            # Update the profile picture
+            profile.profile_pic = profile_pic
+            profile.save()
+            
+            # Log success message
+            messages.success(request, 'Profile picture updated successfully!')
+        except Exception as e:
+            # Log error if something went wrong
+            messages.error(request, f'Error updating profile picture: {str(e)}')
+    
+    # Redirect back to profile page
+    return redirect('user.profile')
+
+@login_required
 def index(request):
     # Get or create UserProfile for the current user
     profile, created = UserProfile.objects.get_or_create(user=request.user)

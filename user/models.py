@@ -27,5 +27,10 @@ class UserProfile(models.Model):
     calories_burned = models.PositiveIntegerField(default=0)
     active_minutes = models.PositiveIntegerField(default=0)
     
+    # Privacy settings
+    show_email = models.BooleanField(default=False, help_text="Make email visible to other users")
+    show_stats = models.BooleanField(default=True, help_text="Make workout statistics visible to other users")
+    allow_following = models.BooleanField(default=True, help_text="Allow other users to follow me")
+    
     def __str__(self):
         return f"{self.user.username}'s Profile"

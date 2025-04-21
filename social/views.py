@@ -38,13 +38,35 @@ posts = [
 ]
 
 def profile(request, id):
-    user = next((u for u in users if u['id'] == id), None)
-    if not user:
+    profile_user = next((u for u in users if u['id'] == id), None)
+    if not profile_user:
         return HttpResponse("User not found", status=404)
     # Check if users are friends
     current_user = users[0]  # Hardcoded as Alice for demo
     is_friend = id in current_user['friends']
-    return render(request, 'social/profile.html', {'user': user, 'is_friend': is_friend})
+    
+    # Add sample fitness data to match our enhanced profile template
+    profile_user['fitness_level'] = 'Intermediate'
+    profile_user['location'] = 'New York'
+    profile_user['bio'] = 'Fitness enthusiast and yoga instructor'
+    profile_user['workouts_completed'] = 125
+    profile_user['calories_burned'] = 15400
+    profile_user['active_minutes'] = 3250
+    profile_user['following'] = 8
+    
+    # Sample achievements
+    profile_user['achievements'] = [
+        {'name': 'Early Bird', 'description': 'Complete 5 workouts before 8am'},
+        {'name': 'Marathon Runner', 'description': 'Run a total of 42.2km'},
+    ]
+    
+    # Sample workouts
+    profile_user['recent_workouts'] = [
+        {'date': '2023-04-15', 'name': 'Morning Run', 'duration': '30 minutes'},
+        {'date': '2023-04-12', 'name': 'Weight Training', 'duration': '45 minutes'},
+    ]
+    
+    return render(request, 'profiles/social_profile.html', {'profile_user': profile_user, 'is_friend': is_friend})
 
 def follow(request, id):
     user = next((u for u in users if u['id'] == id), None)

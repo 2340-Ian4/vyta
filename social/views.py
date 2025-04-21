@@ -57,6 +57,7 @@ def unfollow(request, id):
     if user and user['followers'] > 0:
         user['followers'] -= 1
     return redirect('social.profile', id=id)
+# Profile-related functions have been moved to the profiles app
 
 def add_friend(request, id):
     user = next((u for u in users if u['id'] == id), None)
@@ -120,3 +121,5 @@ def add_comment(request, post_id):
             post['comments'].append(comment)
     return redirect('social.feed')
 
+    """View the social feed, with links to profiles"""
+    return render(request, 'social/feed.html', {'users': users})

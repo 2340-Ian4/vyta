@@ -11,4 +11,6 @@ urlpatterns = [
     path('friend/remove/<int:id>/', views.remove_friend, name='social.remove_friend'),
     path('post/<int:post_id>/like/', views.like_post, name='social.like_post'),
     path('post/<int:post_id>/comment/', views.add_comment, name='social.add_comment'),
+    # Profile-related URLs have been moved to the profiles app
+    path('feed/', views.feed, name='social.feed'),  # View the social feed
 ]

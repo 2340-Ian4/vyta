@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-gradient text-white">
+                    <h3 class="mb-0">Log Workout</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">Workout Name</label>
+                            {{ form.name }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                            {{ form.description }}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.duration.id_for_label }}" class="form-label">Duration (minutes)</label>
+                                {{ form.duration }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.calories_burned.id_for_label }}" class="form-label">Calories Burned</label>
+                                {{ form.calories_burned }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                            {{ form.notes }}
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'workouts.index' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-custom-gradient">Log Workout</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient {
+        background: linear-gradient(45deg, #FFD700, #FF8C00, #FF1493, #00CED1);
+        background-size: 200%;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 15px;
+    }
+    
+    .form-control {
+        border-radius: 10px;
+        border: 1px solid #ced4da;
+    }
+    
+    .form-control:focus {
+        border-color: #00CED1;
+        box-shadow: 0 0 0 0.2rem rgba(0, 206, 209, 0.25);
+    }
+</style>
+{% endblock content %} 

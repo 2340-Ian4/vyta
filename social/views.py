@@ -1,5 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from .models import UserConnection, Post, Like, Comment, Activity
+from user.models import UserProfile
+from django.contrib.auth.models import User
 
 # Dummy data for simplicity
 users = [
@@ -37,6 +41,7 @@ posts = [
     },
 ]
 
+@login_required
 def profile(request, id):
     profile_user = next((u for u in users if u['id'] == id), None)
     if not profile_user:
@@ -78,6 +83,42 @@ def profile(request, id):
         'profile_user': profile_user, 
         'is_friend': is_friend,
         'is_following': is_following
+    """View a user's profile"""
+    profile_user = get_object_or_404(User, id=id)
+    profile = get_object_or_404(UserProfile, user=profile_user)
+    
+    # Check if current user follows this user
+    is_following = UserConnection.objects.filter(
+        follower=request.user,
+        following=profile_user
+    ).exists()
+    
+    # Check if users are friends
+    is_friend = UserConnection.objects.filter(
+        follower=request.user,
+        following=profile_user,
+        is_friend=True
+    ).exists()
+    
+    # Get user's recent posts
+    recent_posts = Post.objects.filter(author=profile_user).order_by('-created_at')[:5]
+    
+    # Get user's recent activities
+    recent_activities = Activity.objects.filter(user=profile_user).order_by('-created_at')[:10]
+    
+    # Get user's followers and following counts
+    followers_count = UserConnection.objects.filter(following=profile_user).count()
+    following_count = UserConnection.objects.filter(follower=profile_user).count()
+    
+    return render(request, 'social/profile.html', {
+        'profile_user': profile_user,
+        'profile': profile,
+        'is_following': is_following,
+        'is_friend': is_friend,
+        'recent_posts': recent_posts,
+        'recent_activities': recent_activities,
+        'followers_count': followers_count,
+        'following_count': following_count,
     })
 
 def follow(request, id):
@@ -127,51 +168,122 @@ def remove_friend(request, id):
         user['friends'].remove(current_user['id'])
     return redirect('social.profile', id=id)
 
+@login_required
 def feed(request):
-    current_user = users[0]  # Hardcoded as Alice for demo
-    friends = [u for u in users if u['id'] in current_user['friends']]
+    """View the social feed with posts and activities from followed users"""
+    # Get users that the current user follows
+    following = UserConnection.objects.filter(follower=request.user).values_list('following', flat=True)
+    
+    # Get recent posts from followed users
+    posts = Post.objects.filter(author__in=following).order_by('-created_at')[:10]
+    
+    # Get recent activities from followed users
+    activities = Activity.objects.filter(user__in=following).order_by('-created_at')[:20]
+    
+    # Get suggested users to follow (users not followed by current user)
+    suggested_users = User.objects.exclude(
+        id__in=following
+    ).exclude(
+        id=request.user.id
+    ).select_related('profile')[:5]
+    
+    # Get user's friends
+    friends = UserConnection.objects.filter(
+        follower=request.user,
+        is_friend=True
+    ).select_related('following', 'following__profile')
+    
     return render(request, 'social/feed.html', {
-        'users': users,
         'posts': posts,
-        'friends': friends
+        'activities': activities,
+        'suggested_users': suggested_users,
+        'friends': friends,
     })
 
+@login_required
 def create_post(request):
+    """Create a new post"""
     if request.method == 'POST':
         content = request.POST.get('content')
-        new_post = {
-            'id': len(posts) + 1,
-            'user_id': 1,
-            'content': content,
-            'author': 'Alice',
-            'likes': [],
-            'comments': []
-        }
-        posts.insert(0, new_post)
+        if content:
+            post = Post.objects.create(
+                author=request.user,
+                content=content
+            )
     return redirect('social.feed')
 
+@login_required
 def like_post(request, post_id):
-    post = next((p for p in posts if p['id'] == post_id), None)
-    current_user_id = 1  # Hardcoded as Alice for demo
-    if post:
-        if current_user_id in post['likes']:
-            post['likes'].remove(current_user_id)
-        else:
-            post['likes'].append(current_user_id)
+    """Like or unlike a post"""
+    post = get_object_or_404(Post, id=post_id)
+    like, created = Like.objects.get_or_create(
+        user=request.user,
+        post=post
+    )
+    if not created:
+        like.delete()
     return redirect('social.feed')
 
+@login_required
 def add_comment(request, post_id):
+    """Add a comment to a post"""
     if request.method == 'POST':
         content = request.POST.get('comment')
-        post = next((p for p in posts if p['id'] == post_id), None)
-        if post and content:
-            comment = {
-                'user_id': 1,  # Hardcoded as Alice for demo
-                'author': 'Alice',
-                'content': content
-            }
-            post['comments'].append(comment)
+        if content:
+            post = get_object_or_404(Post, id=post_id)
+            Comment.objects.create(
+                user=request.user,
+                post=post,
+                content=content
+            )
+    return redirect('social.feed')
+
+@login_required
+def follow_user(request, user_id):
+    """Follow or unfollow a user"""
+    user_to_follow = get_object_or_404(User, id=user_id)
+    connection, created = UserConnection.objects.get_or_create(
+        follower=request.user,
+        following=user_to_follow
+    )
+    if not created:
+        connection.delete()
     return redirect('social.feed')
 
     """View the social feed, with links to profiles"""
     return render(request, 'social/feed.html', {'users': users})
+@login_required
+def add_friend(request, user_id):
+    """Add or remove a friend"""
+    user_to_friend = get_object_or_404(User, id=user_id)
+    connection = get_object_or_404(
+        UserConnection,
+        follower=request.user,
+        following=user_to_friend
+    )
+    connection.is_friend = not connection.is_friend
+    connection.save()
+    return redirect('social.feed')
+
+@login_required
+def search_users(request):
+    """Search for users by username"""
+    query = request.GET.get('q', '')
+    if query:
+        users = User.objects.filter(username__icontains=query).exclude(id=request.user.id)
+    else:
+        users = User.objects.none()
+    
+    return render(request, 'social/feed.html', {
+        'search_results': users,
+        'posts': Post.objects.filter(author__in=UserConnection.objects.filter(follower=request.user).values('following')).order_by('-created_at')[:10],
+        'activities': Activity.objects.filter(user__in=UserConnection.objects.filter(follower=request.user).values('following')).order_by('-created_at')[:20],
+        'suggested_users': User.objects.exclude(
+            id__in=UserConnection.objects.filter(follower=request.user).values('following')
+        ).exclude(id=request.user.id).select_related('profile')[:5],
+        'friends': UserConnection.objects.filter(
+            follower=request.user,
+            is_friend=True
+        ).select_related('following', 'following__profile'),
+    })
+

@@ -1,16 +1,159 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="text-gradient">{{ user.name }}'s Profile</h1>
-    <p>Followers: {{ user.followers }}</p>
-    {% if is_friend %}
-        <a class="btn btn-custom-gradient" href="{% url 'social.remove_friend' user.id %}">Unfriend</a>
-    {% else %}
-        <a class="btn btn-custom-gradient" href="{% url 'social.add_friend' user.id %}">Add Friend</a>
-    {% endif %}
-    <a class="btn btn-custom-gradient" href="{% url 'social.follow' user.id %}">Follow</a>
-    <a class="btn btn-custom-gradient" href="{% url 'social.unfollow' user.id %}">Unfollow</a>
-    <a class="btn btn-custom-gradient" href="{% url 'social.feed' %}">Back to Feed</a>
+    <!-- Profile Header Section -->
+    <div class="card mb-4" style="border-color: #FF8C00; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <img src="{% if profile.profile_pic %}{{ profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                         alt="{{ profile_user.username }}'s Profile Picture" 
+                         class="rounded-circle img-fluid mb-3" 
+                         style="width: 180px; height: 180px; object-fit: cover; border: 3px solid #00CED1;">
+                    
+                    {% if request.user != profile_user %}
+                        {% if is_following %}
+                            <a href="{% url 'social.follow_user' profile_user.id %}" class="btn btn-outline-secondary w-100 mb-2">Unfollow</a>
+                        {% else %}
+                            <a href="{% url 'social.follow_user' profile_user.id %}" class="btn btn-custom-gradient w-100 mb-2">Follow</a>
+                        {% endif %}
+                        
+                        {% if is_friend %}
+                            <a href="{% url 'social.add_friend' profile_user.id %}" class="btn btn-outline-secondary w-100 mb-2">Remove Friend</a>
+                        {% else %}
+                            <a href="{% url 'social.add_friend' profile_user.id %}" class="btn btn-custom-gradient w-100 mb-2">Add Friend</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <div class="col-md-9">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2>{{ profile_user.username }}'s Profile</h2>
+                        {% if request.user == profile_user %}
+                            <a href="{% url 'user.index' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <p><strong>Name:</strong> {{ profile_user.first_name }} {{ profile_user.last_name }}</p>
+                        {% if request.user == profile_user or request.user.is_staff %}
+                            <p><strong>Email:</strong> {{ profile_user.email }}</p>
+                        {% endif %}
+                        <p><strong>Location:</strong> {{ profile.location|default:"Not specified" }}</p>
+                        <p><strong>Fitness Level:</strong> {{ profile.get_fitness_level_display }}</p>
+                    </div>
+                    <div>
+                        <h5>Bio</h5>
+                        <p>{{ profile.bio|default:"No bio available." }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                <div class="card-body text-center">
+                    <h3 class="card-title" style="color: #00CED1;">{{ profile.workouts_completed }}</h3>
+                    <p class="card-text">Workouts Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                <div class="card-body text-center">
+                    <h3 class="card-title" style="color: #00CED1;">{{ profile.calories_burned }}</h3>
+                    <p class="card-text">Calories Burned</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                <div class="card-body text-center">
+                    <h3 class="card-title" style="color: #00CED1;">{{ profile.active_minutes }}</h3>
+                    <p class="card-text">Active Minutes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                <div class="card-body text-center">
+                    <h3 class="card-title" style="color: #00CED1;">{{ followers_count }}</h3>
+                    <p class="card-text">Followers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Activities Section -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Recent Activities</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_activities %}
+                        <ul class="list-group list-group-flush">
+                            {% for activity in recent_activities %}
+                                <li class="list-group-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-grow-1">
+                                            {% if activity.activity_type == 'post' %}
+                                                <p class="mb-0">Posted: {{ activity.details.post_content }}</p>
+                                            {% elif activity.activity_type == 'like' %}
+                                                <p class="mb-0">Liked a post by {{ activity.details.post_author }}</p>
+                                            {% elif activity.activity_type == 'comment' %}
+                                                <p class="mb-0">Commented: "{{ activity.details.comment_content }}"</p>
+                                            {% elif activity.activity_type == 'workout' %}
+                                                <p class="mb-0">Completed workout: {{ activity.details.workout_name }}</p>
+                                            {% elif activity.activity_type == 'achievement' %}
+                                                <p class="mb-0">Earned achievement: {{ activity.details.achievement_name }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <small class="text-muted">{{ activity.created_at|timesince }} ago</small>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-center">No recent activities.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Posts Section -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Recent Posts</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_posts %}
+                        <ul class="list-group list-group-flush">
+                            {% for post in recent_posts %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <p class="mb-0">{{ post.content }}</p>
+                                            <small class="text-muted">{{ post.likes_count }} likes, {{ post.comments_count }} comments</small>
+                                        </div>
+                                        <small class="text-muted">{{ post.created_at|timesince }} ago</small>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-center">No posts yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock content %}

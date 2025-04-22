@@ -1,15 +1,69 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-5">
-    <h1>Workout History</h1>
-    <ul>
-        {% for entry in workout_history %}
-            <li>
-                <strong>{{ entry.date }}</strong>: {{ entry.workout }} ({{ entry.duration }})
-            </li>
-        {% endfor %}
-    </ul>
-    <a class="btn btn-secondary" href="{% url 'workouts.index' %}">Back to Workouts</a>
+    <div class="card shadow-sm">
+        <div class="card-header bg-gradient text-white">
+            <h3 class="mb-0">Workout History</h3>
+        </div>
+        <div class="card-body">
+            {% if workouts %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Workout</th>
+                                <th>Description</th>
+                                <th>Duration</th>
+                                <th>Calories</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for workout in workouts %}
+                                <tr>
+                                    <td>{{ workout.date|date:"M d, Y" }}</td>
+                                    <td>{{ workout.name }}</td>
+                                    <td>{{ workout.description|truncatechars:50 }}</td>
+                                    <td>{{ workout.duration }} mins</td>
+                                    <td>{{ workout.calories_burned|default:"-" }}</td>
+                                    <td>{{ workout.notes|truncatechars:30 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-center">No workouts logged yet.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a href="{% url 'workouts.index' %}" class="btn btn-custom-gradient">Back to Workouts</a>
+    </div>
 </div>
+
+<style>
+    .bg-gradient {
+        background: linear-gradient(45deg, #FFD700, #FF8C00, #FF1493, #00CED1);
+        background-size: 200%;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 15px;
+    }
+    
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table th {
+        border-top: none;
+        background-color: #f8f9fa;
+    }
+</style>
 {% endblock content %}

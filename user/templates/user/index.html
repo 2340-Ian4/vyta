@@ -2,25 +2,243 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1>User Settings</h1>
-
-    <h2>Profile</h2>
-    <div class="d-flex align-items-center">
-        <img src="{% static user_data.profile_pic %}" alt="Profile Picture" class="rounded-circle" width="100" height="100">
-        <div class="ms-3">
-            <p><strong>Username:</strong> {{ user_data.username }}</p>
-            <p><strong>Email:</strong> {{ user_data.email }}</p>
-            <button class="btn btn-primary">Change Profile Picture</button>
-            <a href="{% url 'user.profile' %}" class="btn btn-custom-gradient">View Profile</a>
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Left Sidebar Navigation -->
+            <div class="card mb-4" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Settings Menu</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="#profile-section" class="list-group-item list-group-item-action active">Profile Information</a>
+                        <a href="#appearance-section" class="list-group-item list-group-item-action">Profile Picture</a>
+                        <a href="#personal-info-section" class="list-group-item list-group-item-action">Personal Details</a>
+                        <a href="#fitness-section" class="list-group-item list-group-item-action">Fitness Goals</a>
+                        <a href="#privacy-section" class="list-group-item list-group-item-action">Privacy Settings</a>
+                        <a href="{% url 'user.lifetime_stats' %}" class="list-group-item list-group-item-action">Lifetime Statistics</a>
+                        <a href="{% url 'user.profile' %}" class="list-group-item list-group-item-action">View My Profile</a>
+                        <a href="{% url 'accounts.logout' %}" class="list-group-item list-group-item-action text-danger">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <!-- Main Content -->
+            <div class="card mb-4" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h4 class="m-0">User Settings</h4>
+                </div>
+                <div class="card-body">
+                    <div id="profile-section" class="mb-5">
+                        <h5 class="border-bottom pb-2 mb-4">Profile Overview</h5>
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="position-relative">
+                                <img src="{% if user_data.profile_pic|slice:':4' == 'img/' %}{% static user_data.profile_pic %}{% else %}{{ user_data.profile_pic }}{% endif %}" alt="Profile Picture" 
+                                     class="rounded-circle">
+                                <div class="profile-pic-overlay">
+                                    <a href="#appearance-section" class="btn btn-custom-gradient rounded-circle">
+                                        <i class="fas fa-camera"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ms-4">
+                                <h5 class="mb-1">{{ user_data.username }}</h5>
+                                <p class="text-muted mb-0">{{ user_data.email }}</p>
+                                <div class="mt-2">
+                                    <a href="{% url 'user.profile' %}" class="btn btn-custom-gradient">
+                                        <i class="fas fa-user"></i> View My Profile
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="appearance-section" class="mb-5">
+                        <h5 class="border-bottom pb-2 mb-4">Profile Picture</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="position-relative mb-3">
+                                    <img src="{% if user_data.profile_pic|slice:':4' == 'img/' %}{% static user_data.profile_pic %}{% else %}{{ user_data.profile_pic }}{% endif %}" alt="Profile Picture" 
+                                         class="rounded-circle">
+                                    <div class="profile-pic-overlay">
+                                        <label for="profile_pic" class="btn btn-custom-gradient rounded-circle">
+                                            <i class="fas fa-camera"></i>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <form method="post" enctype="multipart/form-data" class="mb-3">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="profile_pic" class="form-label">Upload a new profile picture</label>
+                                        <input type="file" class="form-control" id="profile_pic" name="profile_pic" accept="image/*">
+                                        <div class="form-text">Recommended size: 500x500 pixels. Max file size: 5MB.</div>
+                                    </div>
+                                    <button type="submit" name="update_picture" class="btn btn-custom-gradient">
+                                        <i class="fas fa-upload"></i> Upload Picture
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="personal-info-section" class="mb-5">
+                        <h5 class="border-bottom pb-2 mb-4">Personal Information</h5>
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="first_name" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user_data.first_name|default:'' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="last_name" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user_data.last_name|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ user_data.email }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" name="location" value="{{ user_data.location|default:'' }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="bio" class="form-label">Bio</label>
+                                <textarea class="form-control" id="bio" name="bio" rows="3">{{ user_data.bio|default:'' }}</textarea>
+                            </div>
+                            <button type="submit" name="update_personal" class="btn btn-custom-gradient">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div id="fitness-section" class="mb-5">
+                        <h5 class="border-bottom pb-2 mb-4">Fitness Information</h5>
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="height" class="form-label">Height (cm)</label>
+                                    <input type="number" step="0.1" class="form-control" id="height" name="height" value="{{ user_data.height|default:'' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="weight" class="form-label">Weight (kg)</label>
+                                    <input type="number" step="0.1" class="form-control" id="weight" name="weight" value="{{ user_data.weight|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="fitness_level" class="form-label">Fitness Level</label>
+                                <select class="form-select" id="fitness_level" name="fitness_level">
+                                    <option value="beginner" {% if user_data.fitness_level == 'beginner' %}selected{% endif %}>Beginner</option>
+                                    <option value="intermediate" {% if user_data.fitness_level == 'intermediate' %}selected{% endif %}>Intermediate</option>
+                                    <option value="advanced" {% if user_data.fitness_level == 'advanced' %}selected{% endif %}>Advanced</option>
+                                </select>
+                            </div>
+                            <button type="submit" name="update_fitness" class="btn btn-custom-gradient">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div id="privacy-section" class="mb-5">
+                        <h5 class="border-bottom pb-2 mb-4">Privacy Settings</h5>
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="show_email" name="show_email" {% if user_data.show_email %}checked{% endif %}>
+                                <label class="form-check-label" for="show_email">Make my email visible to other users</label>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="show_stats" name="show_stats" {% if user_data.show_stats %}checked{% endif %}>
+                                <label class="form-check-label" for="show_stats">Make my workout statistics visible to other users</label>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="allow_following" name="allow_following" {% if user_data.allow_following %}checked{% endif %}>
+                                <label class="form-check-label" for="allow_following">Allow other users to follow me</label>
+                            </div>
+                            <button type="submit" name="update_privacy" class="btn btn-custom-gradient">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div id="security-section" class="mb-5">
+                        <h5 class="border-bottom pb-2 mb-4">Security</h5>
+                        <form method="post" class="mb-3">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="current_password" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="current_password" name="current_password">
+                            </div>
+                            <div class="mb-3">
+                                <label for="new_password" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="new_password" name="new_password">
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                            </div>
+                            <button type="submit" name="update_password" class="btn btn-custom-gradient">
+                                <i class="fas fa-key"></i> Change Password
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <h2>Settings</h2>
-    <ul>
-        <li><a href="{% url 'user.profile' %}">View My Profile</a></li>
-        <li><a href="{% url 'user.lifetime_stats' %}">Lifetime Statistics</a></li>
-        <li><a href="{% url 'accounts.logout' %}">Logout</a></li>
-    </ul>
 </div>
 {% endblock content %}
+
+{% block extra_css %}
+<style>
+    .position-relative {
+        display: inline-block;
+    }
+    #profile-section .position-relative {
+        width: 100px;
+        height: 100px;
+    }
+    #appearance-section .position-relative {
+        width: 150px;
+        height: 150px;
+    }
+    .position-relative img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #00CED1;
+    }
+    .profile-pic-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .position-relative:hover .profile-pic-overlay {
+        opacity: 1;
+    }
+    .profile-pic-overlay .btn {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}

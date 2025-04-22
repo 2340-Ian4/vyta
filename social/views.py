@@ -43,6 +43,46 @@ posts = [
 
 @login_required
 def profile(request, id):
+    profile_user = next((u for u in users if u['id'] == id), None)
+    if not profile_user:
+        return HttpResponse("User not found", status=404)
+    # Check if users are friends
+    current_user = users[0]  # Hardcoded as Alice for demo
+    is_friend = id in current_user['friends']
+    
+    # Check if current user is following this user
+    # For the demo, we'll consider current user is following if followers > 0
+    is_following = False
+    if 'following_users' not in current_user:
+        current_user['following_users'] = [2]  # Default Alice is following Bob
+    
+    is_following = id in current_user['following_users']
+    
+    # Add sample fitness data to match our enhanced profile template
+    profile_user['fitness_level'] = 'Intermediate'
+    profile_user['location'] = 'New York'
+    profile_user['bio'] = 'Fitness enthusiast and yoga instructor'
+    profile_user['workouts_completed'] = 125
+    profile_user['calories_burned'] = 15400
+    profile_user['active_minutes'] = 3250
+    profile_user['following'] = 8
+    
+    # Sample achievements
+    profile_user['achievements'] = [
+        {'name': 'Early Bird', 'description': 'Complete 5 workouts before 8am'},
+        {'name': 'Marathon Runner', 'description': 'Run a total of 42.2km'},
+    ]
+    
+    # Sample workouts
+    profile_user['recent_workouts'] = [
+        {'date': '2023-04-15', 'name': 'Morning Run', 'duration': '30 minutes'},
+        {'date': '2023-04-12', 'name': 'Weight Training', 'duration': '45 minutes'},
+    ]
+    
+    return render(request, 'profiles/social_profile.html', {
+        'profile_user': profile_user, 
+        'is_friend': is_friend,
+        'is_following': is_following
     """View a user's profile"""
     profile_user = get_object_or_404(User, id=id)
     profile = get_object_or_404(UserProfile, user=profile_user)
@@ -83,14 +123,33 @@ def profile(request, id):
 
 def follow(request, id):
     user = next((u for u in users if u['id'] == id), None)
+    current_user = users[0]  # Hardcoded as Alice for demo
+    
     if user:
+        # Add to followers
         user['followers'] += 1
+        
+        # Add to current user's following list
+        if 'following_users' not in current_user:
+            current_user['following_users'] = []
+        
+        if id not in current_user['following_users']:
+            current_user['following_users'].append(id)
+            
     return redirect('social.profile', id=id)
 
 def unfollow(request, id):
     user = next((u for u in users if u['id'] == id), None)
+    current_user = users[0]  # Hardcoded as Alice for demo
+    
     if user and user['followers'] > 0:
+        # Reduce followers
         user['followers'] -= 1
+        
+        # Remove from current user's following list
+        if 'following_users' in current_user and id in current_user['following_users']:
+            current_user['following_users'].remove(id)
+            
     return redirect('social.profile', id=id)
 
 def add_friend(request, id):
@@ -191,6 +250,8 @@ def follow_user(request, user_id):
         connection.delete()
     return redirect('social.feed')
 
+    """View the social feed, with links to profiles"""
+    return render(request, 'social/feed.html', {'users': users})
 @login_required
 def add_friend(request, user_id):
     """Add or remove a friend"""

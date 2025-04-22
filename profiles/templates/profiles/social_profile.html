@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Profile Header Section -->
+    <div class="card mb-4" style="border-color: #FF8C00; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <img src="{% if profile_user.profile_pic %}{{ profile_user.profile_pic }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                         alt="{{ profile_user.name }}'s Profile Picture" 
+                         class="rounded-circle img-fluid mb-3" 
+                         style="width: 180px; height: 180px; object-fit: cover; border: 3px solid #00CED1;">
+                    
+                    <div class="d-flex flex-column gap-2 mb-2">
+                        {% if is_friend %}
+                            <a class="btn btn-outline-danger" href="{% url 'social.remove_friend' profile_user.id %}">
+                                <i class="fas fa-user-minus"></i> Unfriend
+                            </a>
+                        {% else %}
+                            <a class="btn btn-custom-gradient" href="{% url 'social.add_friend' profile_user.id %}">
+                                <i class="fas fa-user-plus"></i> Add Friend
+                            </a>
+                        {% endif %}
+                        
+                        <!-- Follow/Unfollow toggle button -->
+                        {% if is_following %}
+                            <a class="btn btn-outline-secondary w-100" href="{% url 'social.unfollow' profile_user.id %}">
+                                <i class="fas fa-user-times"></i> Unfollow
+                            </a>
+                        {% else %}
+                            <a class="btn btn-custom-gradient w-100" href="{% url 'social.follow' profile_user.id %}">
+                                <i class="fas fa-user-check"></i> Follow
+                            </a>
+                        {% endif %}
+                        
+                        <a class="btn btn-outline-primary" href="{% url 'social.feed' %}">
+                            <i class="fas fa-arrow-left"></i> Back to Feed
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <h2>{{ profile_user.name }}'s Profile</h2>
+                    <div class="mb-3">
+                        <p><strong>Fitness Level:</strong> {% if profile_user.fitness_level %}{{ profile_user.fitness_level }}{% else %}Not specified{% endif %}</p>
+                        <p><strong>Location:</strong> {% if profile_user.location %}{{ profile_user.location }}{% else %}Not specified{% endif %}</p>
+                    </div>
+                    <div>
+                        <h5>Bio</h5>
+                        <p>{% if profile_user.bio %}{{ profile_user.bio }}{% else %}No bio available.{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                <div class="card-body text-center">
+                    <h3 class="card-title" style="color: #00CED1;">{% if profile_user.workouts_completed %}{{ profile_user.workouts_completed }}{% else %}0{% endif %}</h3>
+                    <p class="card-text">Workouts Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                <div class="card-body text-center">
+                    <h3 class="card-title" style="color: #00CED1;">{% if profile_user.calories_burned %}{{ profile_user.calories_burned }}{% else %}0{% endif %}</h3>
+                    <p class="card-text">Calories Burned</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                <div class="card-body text-center">
+                    <h3 class="card-title" style="color: #00CED1;">{% if profile_user.active_minutes %}{{ profile_user.active_minutes }}{% else %}0{% endif %}</h3>
+                    <p class="card-text">Active Minutes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Achievements Section -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Achievements</h5>
+                </div>
+                <div class="card-body">
+                    {% if profile_user.achievements %}
+                        <ul class="list-group list-group-flush">
+                            {% for achievement in profile_user.achievements %}
+                                <li class="list-group-item">
+                                    <strong>{{ achievement.name }}</strong> - {{ achievement.description }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-center">No public achievements yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Workouts Section -->
+        <div class="col-md-6 mb-3">
+            <div class="card h-100" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Recent Workouts</h5>
+                </div>
+                <div class="card-body">
+                    {% if profile_user.recent_workouts %}
+                        <ul class="list-group list-group-flush">
+                            {% for workout in profile_user.recent_workouts %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>{{ workout.name }}</strong>
+                                            <p class="text-muted mb-0">{{ workout.duration }}</p>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">{{ workout.date }}</small>
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-center">No public workouts recorded yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Stats Section -->
+    <div class="row mt-4 mb-5">
+        <div class="col-md-12">
+            <div class="card" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Social Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4>{{ profile_user.followers }}</h4>
+                            <p>Followers</p>
+                        </div>
+                        <div class="col-6">
+                            <h4>{% if profile_user.following %}{{ profile_user.following }}{% else %}0{% endif %}</h4>
+                            <p>Following</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %} 

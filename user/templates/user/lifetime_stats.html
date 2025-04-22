@@ -1,13 +1,87 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1>Lifetime Statistics</h1>
-    <ul>
-        <li><strong>Workouts Completed:</strong> {{ stats.workouts_completed }}</li>
-        <li><strong>Calories Burned:</strong> {{ stats.calories_burned }}</li>
-        <li><strong>Active Minutes:</strong> {{ stats.active_minutes }}</li>
-    </ul>
-    <a class="btn btn-secondary" href="{% url 'user.index' %}">Back to Settings</a>
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Left Sidebar Navigation -->
+            <div class="card mb-4" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h5 class="m-0">Menu</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'user.index' %}" class="list-group-item list-group-item-action">Settings</a>
+                        <a href="#" class="list-group-item list-group-item-action active">Lifetime Statistics</a>
+                        <a href="{% url 'user.profile' %}" class="list-group-item list-group-item-action">View My Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <!-- Main Content -->
+            <div class="card mb-4" style="border-color: #FF8C00;">
+                <div class="card-header" style="background-color: #00CED1; color: white;">
+                    <h4 class="m-0">Lifetime Statistics</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                                <div class="card-body text-center">
+                                    <h3 class="card-title" style="color: #00CED1;">{{ stats.workouts_completed }}</h3>
+                                    <p class="card-text">Workouts Completed</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                                <div class="card-body text-center">
+                                    <h3 class="card-title" style="color: #00CED1;">{{ stats.calories_burned }}</h3>
+                                    <p class="card-text">Calories Burned</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
+                                <div class="card-body text-center">
+                                    <h3 class="card-title" style="color: #00CED1;">{{ stats.active_minutes }}</h3>
+                                    <p class="card-text">Active Minutes</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card" style="border-color: #FF8C00;">
+                                <div class="card-header" style="background-color: #00CED1; color: white;">
+                                    <h5 class="m-0">Monthly Progress</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i> Monthly progress tracking will be available in the next update.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <a href="{% url 'user.index' %}" class="btn btn-custom-gradient">
+                                <i class="fas fa-arrow-left"></i> Back to Settings
+                            </a>
+                            <a href="{% url 'workouts.index' %}" class="btn btn-custom-gradient">
+                                <i class="fas fa-dumbbell"></i> View All Workouts
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock content %}

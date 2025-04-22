@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'home',
     'accounts',
     'social',
+    'profiles',
     'achievements',
     'workouts',
     'user'
@@ -134,6 +135,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS = [
     BASE_DIR / 'vyta/static/',
 ]
+
+# Media files (User uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 LOGIN_REDIRECT_URL = '/home'  # Redirect to home after login
 LOGOUT_REDIRECT_URL = '/accounts/login/'  # Redirect to login after logout

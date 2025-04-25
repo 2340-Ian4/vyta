@@ -83,6 +83,9 @@ def profile(request, id):
         'profile_user': profile_user, 
         'is_friend': is_friend,
         'is_following': is_following
+    })
+
+def profile(request, id):
     """View a user's profile"""
     profile_user = get_object_or_404(User, id=id)
     profile = get_object_or_404(UserProfile, user=profile_user)

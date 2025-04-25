@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/goal/<int:goal_id>/update/', views.update_goal, name='workouts.update_goal'),
     path('api/goal/<int:goal_id>/delete/', views.delete_goal, name='workouts.delete_goal'),
     path('api/goal/add/', views.add_goal, name='workouts.add_goal'),
+    path('api/workout/<int:workout_id>/delete/', views.delete_workout, name='workouts.delete_workout'),
 ]

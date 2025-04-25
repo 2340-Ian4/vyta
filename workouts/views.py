@@ -128,3 +128,10 @@ def delete_goal(request, goal_id):
     goal = get_object_or_404(WorkoutGoal, id=goal_id, user=request.user)
     goal.delete()
     return JsonResponse({'success': True})
+
+@login_required
+@require_http_methods(["POST"])
+def delete_workout(request, workout_id):
+    workout = get_object_or_404(Workout, id=workout_id, user=request.user)
+    workout.delete()
+    return JsonResponse({'success': True})

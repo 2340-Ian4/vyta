@@ -7,7 +7,7 @@
         <!-- Progress Section -->
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm">
-                <div class="card-header bg-gradient text-white d-flex justify-content-between align-items-center">
+                <div class="card-header" style="background: linear-gradient(45deg, #00CED1, #FF1493); color: white; display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="mb-0">Progress Towards Goals</h3>
                     <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addGoalModal" id="addGoalBtn">
                         <i class="fas fa-plus"></i> Add Goal
@@ -59,7 +59,7 @@
         <!-- Quick Actions -->
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm">
-                <div class="card-header bg-gradient text-white">
+                <div class="card-header" style="background: linear-gradient(45deg, #FFD700, #FF8C00); color: white;">
                     <h3 class="mb-0">Quick Actions</h3>
                 </div>
                 <div class="card-body">
@@ -74,7 +74,7 @@
     <div class="row">
         <div class="col-12 mb-4">
             <div class="card shadow-sm">
-                <div class="card-header bg-gradient text-white">
+                <div class="card-header" style="background: linear-gradient(45deg, #FF1493, #00CED1); color: white;">
                     <h3 class="mb-0">Recent Workouts</h3>
                 </div>
                 <div class="card-body">
@@ -113,22 +113,53 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <div class="card-header bg-gradient text-white">
-                    <h3 class="mb-0">AI-Generated Workouts</h3>
+                <div class="card-header" style="background: linear-gradient(45deg, #00CED1, #FF1493); color: white;">
+                    <h3 class="mb-0" style="font-weight: bold; font-size: 1.5rem;">Suggested Workouts</h3>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        {% for workout in ai_workouts %}
-                            <div class="col-md-4 mb-3">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ workout.name }}</h5>
-                                        <p class="card-text">{{ workout.description }}</p>
-                                        <button class="btn btn-custom-gradient">Start Workout</button>
-                                    </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Full Body Workout</h5>
+                                    <p class="card-text">A 30 minute full-body workout focusing on strength and endurance.</p>
+                                    <button class="btn btn-custom-gradient start-workout-btn" 
+                                            data-workout-name="Full Body Workout"
+                                            data-workout-description="A 30 minute full-body workout focusing on strength and endurance."
+                                            data-workout-duration="30"
+                                            data-workout-calories="150"
+                                            data-workout-notes="">Start Workout</button>
                                 </div>
                             </div>
-                        {% endfor %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Cardio Blast</h5>
+                                    <p class="card-text">A 20 minute high-intensity cardio session to boost metabolism.</p>
+                                    <button class="btn btn-custom-gradient start-workout-btn"
+                                            data-workout-name="Cardio Blast"
+                                            data-workout-description="A 20 minute high-intensity cardio session to boost metabolism."
+                                            data-workout-duration="20"
+                                            data-workout-calories="200"
+                                            data-workout-notes="">Start Workout</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Strength Training</h5>
+                                    <p class="card-text">A 40 minute strength-training session targeting major muscle groups.</p>
+                                    <button class="btn btn-custom-gradient start-workout-btn"
+                                            data-workout-name="Strength Training"
+                                            data-workout-description="A 40 minute strength-training session targeting major muscle groups."
+                                            data-workout-duration="40"
+                                            data-workout-calories="130"
+                                            data-workout-notes="">Start Workout</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -264,6 +295,30 @@
         <p class="card-text completed-date-text d-none"></p>
     </div>
 </template>
+
+<!-- Workout Confirmation Modal -->
+<div class="modal fade" id="workoutConfirmationModal" tabindex="-1" aria-labelledby="workoutConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(45deg, #00CED1, #FF1493); color: white;">
+                <h5 class="modal-title" id="workoutConfirmationModalLabel">Confirm Workout</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to log this workout?</p>
+                <div class="workout-details">
+                    <p><strong>Workout:</strong> <span id="modal-workout-name"></span></p>
+                    <p><strong>Duration:</strong> <span id="modal-workout-duration"></span> minutes</p>
+                    <p><strong>Calories:</strong> <span id="modal-workout-calories"></span></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-custom-gradient" id="confirmWorkoutBtn">Log Workout</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <style>
     .bg-gradient {
@@ -956,6 +1011,69 @@ document.addEventListener('DOMContentLoaded', function() {
             saveNextGoal(0);
         });
     }
+
+    // Initialize workout confirmation modal
+    const workoutModal = new bootstrap.Modal(document.getElementById('workoutConfirmationModal'));
+    let currentWorkout = null;
+
+    // Add click event listeners to all start workout buttons
+    document.querySelectorAll('.start-workout-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            currentWorkout = {
+                name: this.dataset.workoutName,
+                description: this.dataset.workoutDescription,
+                duration: this.dataset.workoutDuration,
+                calories: this.dataset.workoutCalories,
+                notes: this.dataset.workoutNotes
+            };
+
+            // Update modal content
+            document.getElementById('modal-workout-name').textContent = currentWorkout.name;
+            document.getElementById('modal-workout-duration').textContent = currentWorkout.duration;
+            document.getElementById('modal-workout-calories').textContent = currentWorkout.calories;
+
+            // Show the modal
+            workoutModal.show();
+        });
+    });
+
+    // Handle workout confirmation
+    document.getElementById('confirmWorkoutBtn').addEventListener('click', function() {
+        if (currentWorkout) {
+            // Create FormData object
+            const formData = new FormData();
+            formData.append('name', currentWorkout.name);
+            formData.append('description', currentWorkout.description);
+            formData.append('duration', currentWorkout.duration);
+            formData.append('calories_burned', currentWorkout.calories);
+            formData.append('notes', currentWorkout.notes || '');
+            formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+            // Send workout data to server
+            fetch('/workouts/log/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(() => {
+                // Show success notification
+                showNotification('Workout logged successfully!', 'success');
+                // Hide the modal
+                workoutModal.hide();
+                // Reload the page to update the history
+                setTimeout(() => window.location.reload(), 1500);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error logging workout. Please try again.', 'error');
+            });
+        }
+    });
 });
 </script>
 {% endblock content %}

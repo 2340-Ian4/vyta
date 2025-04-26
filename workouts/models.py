@@ -18,7 +18,7 @@ class Workout(models.Model):
         return f"{self.name} - {self.date.strftime('%Y-%m-%d')}"
 
 class WorkoutGoal(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='workout_goal')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='workout_goals')
     goal_type = models.CharField(max_length=50, choices=[
         ('weight_loss', 'Weight Loss'),
         ('muscle_gain', 'Muscle Gain'),

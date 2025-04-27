@@ -19,28 +19,14 @@
                         {% else %}
                             <a href="{% url 'social.follow_user' profile_user.id %}" class="btn btn-custom-gradient w-100 mb-2">Follow</a>
                         {% endif %}
-                        
-                        {% if is_friend %}
-                            <a href="{% url 'social.add_friend' profile_user.id %}" class="btn btn-outline-secondary w-100 mb-2">Remove Friend</a>
-                        {% else %}
-                            <a href="{% url 'social.add_friend' profile_user.id %}" class="btn btn-custom-gradient w-100 mb-2">Add Friend</a>
-                        {% endif %}
                     {% endif %}
                 </div>
                 <div class="col-md-9">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h2>{{ profile_user.username }}'s Profile</h2>
-                        {% if request.user == profile_user %}
-                            <a href="{% url 'user.index' %}" class="btn btn-outline-primary">
-                                <i class="fas fa-cog"></i> Settings
-                            </a>
-                        {% endif %}
                     </div>
                     <div class="mb-3">
                         <p><strong>Name:</strong> {{ profile_user.first_name }} {{ profile_user.last_name }}</p>
-                        {% if request.user == profile_user or request.user.is_staff %}
-                            <p><strong>Email:</strong> {{ profile_user.email }}</p>
-                        {% endif %}
                         <p><strong>Location:</strong> {{ profile.location|default:"Not specified" }}</p>
                         <p><strong>Fitness Level:</strong> {{ profile.get_fitness_level_display }}</p>
                     </div>
@@ -82,76 +68,139 @@
         <div class="col-md-3 mb-3">
             <div class="card h-100" style="border-color: #FF8C00; background: linear-gradient(to right, #f8f9fa, #f0f0f0);">
                 <div class="card-body text-center">
-                    <h3 class="card-title" style="color: #00CED1;">{{ followers_count }}</h3>
-                    <p class="card-text">Followers</p>
+                    <div class="d-flex justify-content-around">
+                        <div class="text-center" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#followersModal">
+                            <h3 class="card-title" style="color: #00CED1;">{{ followers_count }}</h3>
+                            <p class="card-text">Followers</p>
+                        </div>
+                        <div class="text-center" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#followingModal">
+                            <h3 class="card-title" style="color: #00CED1;">{{ following_count }}</h3>
+                            <p class="card-text">Following</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row">
-        <!-- Recent Activities Section -->
+        <!-- Achievements Section -->
         <div class="col-md-6 mb-3">
             <div class="card h-100" style="border-color: #FF8C00;">
                 <div class="card-header" style="background-color: #00CED1; color: white;">
-                    <h5 class="m-0">Recent Activities</h5>
+                    <h5 class="m-0">Achievements</h5>
                 </div>
                 <div class="card-body">
-                    {% if recent_activities %}
+                    {% if achievements %}
                         <ul class="list-group list-group-flush">
-                            {% for activity in recent_activities %}
+                            {% for achievement in achievements %}
                                 <li class="list-group-item">
-                                    <div class="d-flex align-items-center">
-                                        <div class="flex-grow-1">
-                                            {% if activity.activity_type == 'post' %}
-                                                <p class="mb-0">Posted: {{ activity.details.post_content }}</p>
-                                            {% elif activity.activity_type == 'like' %}
-                                                <p class="mb-0">Liked a post by {{ activity.details.post_author }}</p>
-                                            {% elif activity.activity_type == 'comment' %}
-                                                <p class="mb-0">Commented: "{{ activity.details.comment_content }}"</p>
-                                            {% elif activity.activity_type == 'workout' %}
-                                                <p class="mb-0">Completed workout: {{ activity.details.workout_name }}</p>
-                                            {% elif activity.activity_type == 'achievement' %}
-                                                <p class="mb-0">Earned achievement: {{ activity.details.achievement_name }}</p>
-                                            {% endif %}
-                                        </div>
-                                        <small class="text-muted">{{ activity.created_at|timesince }} ago</small>
-                                    </div>
+                                    <strong>{{ achievement.name }}</strong> - {{ achievement.description }}
                                 </li>
                             {% endfor %}
                         </ul>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'achievements.index' %}" class="btn btn-custom-gradient">View All Achievements</a>
+                        </div>
                     {% else %}
-                        <p class="text-center">No recent activities.</p>
+                        <p class="text-center">No achievements yet.</p>
                     {% endif %}
                 </div>
             </div>
         </div>
         
-        <!-- Recent Posts Section -->
+        <!-- Recent Workouts Section -->
         <div class="col-md-6 mb-3">
             <div class="card h-100" style="border-color: #FF8C00;">
                 <div class="card-header" style="background-color: #00CED1; color: white;">
-                    <h5 class="m-0">Recent Posts</h5>
+                    <h5 class="m-0">Recent Workouts</h5>
                 </div>
                 <div class="card-body">
-                    {% if recent_posts %}
+                    {% if recent_workouts %}
                         <ul class="list-group list-group-flush">
-                            {% for post in recent_posts %}
+                            {% for workout in recent_workouts %}
                                 <li class="list-group-item">
                                     <div class="d-flex justify-content-between">
                                         <div>
-                                            <p class="mb-0">{{ post.content }}</p>
-                                            <small class="text-muted">{{ post.likes_count }} likes, {{ post.comments_count }} comments</small>
+                                            <strong>{{ workout.name }}</strong>
+                                            <p class="text-muted mb-0">{{ workout.duration }}</p>
                                         </div>
-                                        <small class="text-muted">{{ post.created_at|timesince }} ago</small>
+                                        <div>
+                                            <small class="text-muted">{{ workout.date }}</small>
+                                        </div>
                                     </div>
                                 </li>
                             {% endfor %}
                         </ul>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'workouts.index' %}" class="btn btn-custom-gradient">View All Workouts</a>
+                        </div>
                     {% else %}
-                        <p class="text-center">No posts yet.</p>
+                        <p class="text-center">No workouts recorded yet.</p>
                     {% endif %}
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Followers Modal -->
+<div class="modal fade" id="followersModal" tabindex="-1" aria-labelledby="followersModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="followersModalLabel">Followers</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if followers %}
+                    <div class="list-group">
+                        {% for follower in followers %}
+                            <a href="{% url 'user.profile' follower.username %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                                <img src="{% if follower.profile.profile_pic %}{{ follower.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                                     alt="{{ follower.username }}'s Profile Picture" 
+                                     class="rounded-circle me-2" 
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                <div>
+                                    <h6 class="mb-0">{{ follower.username }}</h6>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center text-muted">No followers yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Following Modal -->
+<div class="modal fade" id="followingModal" tabindex="-1" aria-labelledby="followingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="followingModalLabel">Following</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if following %}
+                    <div class="list-group">
+                        {% for user in following %}
+                            <a href="{% url 'user.profile' user.username %}" class="list-group-item list-group-item-action d-flex align-items-center">
+                                <img src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                                     alt="{{ user.username }}'s Profile Picture" 
+                                     class="rounded-circle me-2" 
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                <div>
+                                    <h6 class="mb-0">{{ user.username }}</h6>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center text-muted">Not following anyone yet.</p>
+                {% endif %}
             </div>
         </div>
     </div>

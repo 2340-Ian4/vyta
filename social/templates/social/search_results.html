@@ -1,0 +1,31 @@
+{% load static %}
+
+{% if search_results %}
+<div class="search-results">
+    <h6 class="text-gradient mb-3">Search Results</h6>
+    {% for user in search_results %}
+    <div class="d-flex align-items-center mb-3 p-2 rounded hover-bg">
+        <a href="{% url 'social.profile' user.id %}" class="d-flex align-items-center text-decoration-none text-dark w-100">
+            <img src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                 alt="{{ user.username }}'s Profile Picture" 
+                 class="rounded-circle me-2" 
+                 style="width: 40px; height: 40px; object-fit: cover;">
+            <div class="flex-grow-1">
+                <h6 class="mb-0 text-truncate" style="max-width: 200px;">{{ user.username }}</h6>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center text-muted">
+    <p>No users found</p>
+</div>
+{% endif %}
+
+<style>
+.hover-bg:hover {
+    background-color: rgba(0, 206, 209, 0.1);
+    transition: background-color 0.2s ease;
+}
+</style> 

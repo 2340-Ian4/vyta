@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from .models import UserProfile
+from social.models import UserConnection
 
 @login_required
 def index(request):
@@ -66,24 +67,27 @@ def profile(request, username=None):
     # Get or create the user profile
     profile, created = UserProfile.objects.get_or_create(user=user)
     
-    # Get the user's achievements and workouts
-    # In a real implementation, this would query the related models
-    achievements = [
-        {'name': 'Early Bird', 'description': 'Complete 5 workouts before 8am'},
-        {'name': 'Marathon Runner', 'description': 'Run a total of 42.2km'},
-    ]
+    # Get user's followers and following
+    followers = User.objects.filter(
+        id__in=UserConnection.objects.filter(following=user).values_list('follower', flat=True)
+    ).select_related('profile')
     
-    recent_workouts = [
-        {'date': '2023-04-15', 'name': 'Morning Run', 'duration': '30 minutes'},
-        {'date': '2023-04-12', 'name': 'Weight Training', 'duration': '45 minutes'},
-    ]
+    following = User.objects.filter(
+        id__in=UserConnection.objects.filter(follower=user).values_list('following', flat=True)
+    ).select_related('profile')
+    
+    # Get counts
+    followers_count = followers.count()
+    following_count = following.count()
     
     context = {
         'profile_user': user,
         'profile': profile,
         'is_own_profile': is_own_profile,
-        'achievements': achievements,
-        'recent_workouts': recent_workouts,
+        'followers': followers,
+        'following': following,
+        'followers_count': followers_count,
+        'following_count': following_count,
     }
     
     return render(request, 'user/profile.html', context)

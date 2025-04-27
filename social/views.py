@@ -6,6 +6,9 @@ from user.models import UserProfile
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db import models
+from django.contrib import messages
+from django.db.models import Sum, Count
+from workouts.models import Workout
 
 # Dummy data for simplicity
 users = [
@@ -45,36 +48,19 @@ posts = [
 
 @login_required
 def profile(request, id):
-    """View a user's profile"""
     profile_user = get_object_or_404(User, id=id)
+    is_own_profile = (request.user == profile_user)
     
-    # If viewing own profile, redirect to user profile page
-    if request.user == profile_user:
-        return redirect('user.profile')
-        
-    profile, created = UserProfile.objects.get_or_create(user=profile_user)
+    # Get profile
+    profile = profile_user.profile
     
-    # Check if current user follows this user
+    # Check if current user is following this user
     is_following = UserConnection.objects.filter(
         follower=request.user,
         following=profile_user
     ).exists()
     
-    # Get user's posts
-    posts = Post.objects.filter(
-        author=profile_user,
-        is_hidden=False
-    ).select_related(
-        'author',
-        'author__profile'
-    ).prefetch_related(
-        'likes',
-        'comments',
-        'comments__user',
-        'comments__user__profile'
-    ).order_by('-created_at')
-    
-    # Get user's followers and following
+    # Get followers and following
     followers = User.objects.filter(
         id__in=UserConnection.objects.filter(following=profile_user).values_list('follower', flat=True)
     ).select_related('profile')
@@ -83,20 +69,35 @@ def profile(request, id):
         id__in=UserConnection.objects.filter(follower=profile_user).values_list('following', flat=True)
     ).select_related('profile')
     
-    # Get counts
-    followers_count = followers.count()
-    following_count = following.count()
+    # Calculate workout statistics
+    workout_stats = Workout.objects.filter(user=profile_user).aggregate(
+        total_workouts=Count('id'),
+        total_calories=Sum('calories_burned'),
+        total_minutes=Sum('duration')
+    )
     
-    return render(request, 'social/profile.html', {
+    # Update profile with calculated statistics
+    profile.workouts_completed = workout_stats['total_workouts'] or 0
+    profile.calories_burned = workout_stats['total_calories'] or 0
+    profile.active_minutes = workout_stats['total_minutes'] or 0
+    profile.save()
+    
+    # Get recent workouts
+    recent_workouts = Workout.objects.filter(user=profile_user).order_by('-date')[:5]
+    
+    context = {
         'profile_user': profile_user,
         'profile': profile,
+        'is_own_profile': is_own_profile,
         'is_following': is_following,
-        'posts': posts,
         'followers': followers,
         'following': following,
-        'followers_count': followers_count,
-        'following_count': following_count,
-    })
+        'followers_count': followers.count(),
+        'following_count': following.count(),
+        'recent_workouts': recent_workouts,
+    }
+    
+    return render(request, 'social/profile.html', context)
 
 def follow(request, id):
     user = next((u for u in users if u['id'] == id), None)

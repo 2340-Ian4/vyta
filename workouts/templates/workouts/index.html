@@ -9,9 +9,9 @@
             <div class="card shadow-sm">
                 <div class="card-header" style="background: linear-gradient(45deg, #00CED1, #FF1493); color: white; display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="mb-0">Progress Towards Goals</h3>
-                    <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addGoalModal" id="addGoalBtn">
+                    <a href="{% url 'workouts.goal' %}" class="btn btn-light btn-sm">
                         <i class="fas fa-plus"></i> Add Goal
-                    </button>
+                    </a>
                 </div>
                 <div class="card-body">
                     <div id="goalsContainer">
@@ -167,60 +167,6 @@
     </div>
 </div>
 
-<!-- Add Goal Modal -->
-<div class="modal fade" id="addGoalModal" tabindex="-1" aria-labelledby="addGoalModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-gradient text-white">
-                <h5 class="modal-title" id="addGoalModalLabel">Add New Goals</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="goalsList">
-                    <div class="goal-form mb-4 p-3 border rounded">
-                        <h6 class="mb-3">Goal #1</h6>
-                        <form class="goal-entry-form">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Goal Type</label>
-                                    <select class="form-select goal-type" name="goal_type" required>
-                                        <option value="weight_loss">Weight Loss</option>
-                                        <option value="muscle_gain">Muscle Gain</option>
-                                        <option value="endurance">Endurance</option>
-                                        <option value="flexibility">Flexibility</option>
-                                        <option value="general_fitness">General Fitness</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Target</label>
-                                    <input type="text" class="form-control goal-target" name="target" required>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">End Date</label>
-                                    <input type="date" class="form-control goal-end-date" name="end_date">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Initial Progress (%)</label>
-                                    <input type="number" class="form-control goal-progress" name="progress" min="0" max="100" value="0" required>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                <button type="button" class="btn btn-outline-primary mb-3" id="addAnotherGoalBtn">
-                    <i class="fas fa-plus"></i> Add Another Goal
-                </button>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-custom-gradient" id="saveNewGoalsBtn">Save All Goals</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Goal Update Modal -->
 <div class="modal fade" id="updateGoalModal" tabindex="-1" aria-labelledby="updateGoalModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -300,16 +246,25 @@
 <div class="modal fade" id="workoutConfirmationModal" tabindex="-1" aria-labelledby="workoutConfirmationModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(45deg, #00CED1, #FF1493); color: white;">
+            <div class="modal-header" style="background: linear-gradient(45deg, #FFD700, #FF8C00, #FF1493, #00CED1); color: white;">
                 <h5 class="modal-title" id="workoutConfirmationModalLabel">Confirm Workout</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to log this workout?</p>
-                <div class="workout-details">
-                    <p><strong>Workout:</strong> <span id="modal-workout-name"></span></p>
-                    <p><strong>Duration:</strong> <span id="modal-workout-duration"></span> minutes</p>
-                    <p><strong>Calories:</strong> <span id="modal-workout-calories"></span></p>
+                <div class="workout-details p-4">
+                    <h6 class="mb-4 fw-bold">Workout Details</h6>
+                    <div class="mb-3">
+                        <p class="mb-2"><strong>Workout:</strong></p>
+                        <p class="text-muted" id="modal-workout-name"></p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="mb-2"><strong>Duration:</strong></p>
+                        <p class="text-muted" id="modal-workout-duration"></p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="mb-2"><strong>Calories:</strong></p>
+                        <p class="text-muted" id="modal-workout-calories"></p>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -658,360 +613,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Handle add new goals
-    const addGoalModal = new bootstrap.Modal(document.getElementById('addGoalModal'));
-    const goalsList = document.getElementById('goalsList');
-    const addAnotherGoalBtn = document.getElementById('addAnotherGoalBtn');
-    const saveNewGoalsBtn = document.getElementById('saveNewGoalsBtn');
-    const addGoalBtn = document.getElementById('addGoalBtn');
-    const goalsContainer = document.getElementById('goalsContainer');
-    const noGoalsMessage = document.getElementById('noGoalsMessage');
-    
-    // Check if we've reached the goal limit
-    function checkGoalLimit() {
-        const currentGoals = document.querySelectorAll('.goal-item').length;
-        const maxGoals = 3;
-        
-        if (currentGoals >= maxGoals) {
-            addGoalBtn.disabled = true;
-            addGoalBtn.innerHTML = '<i class="fas fa-ban"></i> Goal Limit Reached';
-            addGoalBtn.title = 'You can only have 3 goals at a time';
-            return true;
-        } else {
-            addGoalBtn.disabled = false;
-            addGoalBtn.innerHTML = '<i class="fas fa-plus"></i> Add Goal';
-            addGoalBtn.title = '';
-            return false;
-        }
-    }
-    
-    // Check goal limit on page load
-    checkGoalLimit();
-
-    // Function to create a new goal form
-    function createGoalForm(index) {
-        return `
-            <div class="goal-form mb-4 p-3 border rounded">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0">Goal #${index}</h6>
-                    <button type="button" class="btn btn-sm btn-danger remove-goal-btn">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <form class="goal-entry-form">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Goal Type</label>
-                            <select class="form-select goal-type" name="goal_type" required>
-                                <option value="weight_loss">Weight Loss</option>
-                                <option value="muscle_gain">Muscle Gain</option>
-                                <option value="endurance">Endurance</option>
-                                <option value="flexibility">Flexibility</option>
-                                <option value="general_fitness">General Fitness</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Target</label>
-                            <input type="text" class="form-control goal-target" name="target" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">End Date</label>
-                            <input type="date" class="form-control goal-end-date" name="end_date">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Initial Progress (%)</label>
-                            <input type="number" class="form-control goal-progress" name="progress" min="0" max="100" value="0" required>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        `;
-    }
-
-    // Add another goal form
-    if (addAnotherGoalBtn) {
-        addAnotherGoalBtn.addEventListener('click', function() {
-            const currentForms = document.querySelectorAll('.goal-form').length;
-            const currentGoals = document.querySelectorAll('.goal-item').length;
-            const maxGoals = 3;
-            
-            // Check if adding another form would exceed the goal limit
-            if (currentForms + currentGoals >= maxGoals) {
-                showNotification(`You can only have ${maxGoals} goals at a time.`, 'warning');
-                return;
-            }
-            
-            const newIndex = currentForms + 1;
-            goalsList.insertAdjacentHTML('beforeend', createGoalForm(newIndex));
-        });
-    }
-
-    // Remove goal form
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.remove-goal-btn')) {
-            const goalForm = e.target.closest('.goal-form');
-            goalForm.remove();
-            // Update remaining goal numbers
-            document.querySelectorAll('.goal-form').forEach((form, index) => {
-                form.querySelector('h6').textContent = `Goal #${index + 1}`;
-            });
-        }
-    });
-
-    // Save all goals
-    if (saveNewGoalsBtn) {
-        saveNewGoalsBtn.addEventListener('click', function() {
-            const goalForms = document.querySelectorAll('.goal-entry-form');
-            if (goalForms.length === 0) {
-                showNotification('No goals to save. Please add at least one goal.', 'warning');
-                return;
-            }
-            
-            // Check if adding these goals would exceed the limit
-            const currentGoals = document.querySelectorAll('.goal-item').length;
-            if (currentGoals + goalForms.length > 3) {
-                showNotification('You can only have 3 goals at a time. Please remove some goals before adding more.', 'warning');
-                return;
-            }
-            
-            // Disable the save button to prevent multiple submissions
-            saveNewGoalsBtn.disabled = true;
-            saveNewGoalsBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
-            
-            // Collect all goal data
-            const goals = Array.from(goalForms).map(form => {
-                const formData = new FormData();
-                formData.append('goal_type', form.querySelector('.goal-type').value);
-                formData.append('target', form.querySelector('.goal-target').value);
-                formData.append('end_date', form.querySelector('.goal-end-date').value);
-                formData.append('progress', form.querySelector('.goal-progress').value);
-                return formData;
-            });
-            
-            console.log('Saving goals:', goals.length);
-            
-            // Save each goal sequentially
-            let savedCount = 0;
-            let errorCount = 0;
-            let savedGoalIds = [];
-            
-            const saveNextGoal = (index) => {
-                if (index >= goals.length) {
-                    // All goals processed
-                    saveNewGoalsBtn.disabled = false;
-                    saveNewGoalsBtn.innerHTML = 'Save All Goals';
-                    
-                    if (savedCount > 0) {
-                        showNotification(`Successfully saved ${savedCount} goal(s)!`, 'success');
-                        
-                        // Instead of reloading, dynamically add the new goals to the page
-                        if (savedGoalIds.length > 0) {
-                            // Fetch the newly created goals
-                            Promise.all(savedGoalIds.map(id => 
-                                fetch(`/workouts/api/goal/${id}/`)
-                                    .then(response => response.json())
-                            ))
-                            .then(goalsData => {
-                                console.log('Fetched new goals:', goalsData);
-                                
-                                // Remove the "No goals" message if it exists
-                                if (noGoalsMessage) {
-                                    noGoalsMessage.remove();
-                                }
-                                
-                                // Add each new goal to the page
-                                goalsData.forEach(goal => {
-                                    if (goal.success) {
-                                        // Create a new goal item
-                                        const goalItem = document.createElement('div');
-                                        goalItem.className = 'goal-item mb-4';
-                                        goalItem.setAttribute('data-goal-id', goal.id);
-                                        
-                                        // Set the progress bar color based on progress
-                                        let progressColor = 'linear-gradient(45deg, #FFD700, #FF8C00)';
-                                        if (goal.progress < 30) {
-                                            progressColor = 'linear-gradient(45deg, #FF4500, #FF6347)';
-                                        } else if (goal.progress < 70) {
-                                            progressColor = 'linear-gradient(45deg, #FFD700, #FF8C00)';
-                                        } else if (goal.progress < 100) {
-                                            progressColor = 'linear-gradient(45deg, #32CD32, #228B22)';
-                                        } else {
-                                            progressColor = 'linear-gradient(45deg, #00FF00, #008000)';
-                                        }
-                                        
-                                        // Create the goal HTML
-                                        goalItem.innerHTML = `
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <h5 class="card-title mb-0">${goal.goal_type_display}</h5>
-                                                <div class="btn-group">
-                                                    <button class="btn btn-sm btn-custom-gradient update-goal-btn" data-goal-id="${goal.id}">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-danger delete-goal-btn" data-goal-id="${goal.id}">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <p class="card-text">Target: ${goal.target}</p>
-                                            <div class="progress mb-3">
-                                                <div class="progress-bar" 
-                                                    role="progressbar" 
-                                                    style="width: ${goal.progress}%; background: ${progressColor};" 
-                                                    aria-valuenow="${goal.progress}" 
-                                                    aria-valuemin="0" 
-                                                    aria-valuemax="100">
-                                                    ${goal.progress}%
-                                                </div>
-                                            </div>
-                                            ${goal.end_date ? `<p class="card-text"><small class="text-muted">End Date: ${new Date(goal.end_date).toLocaleDateString()}</small></p>` : ''}
-                                        `;
-                                        
-                                        // Add the new goal to the page
-                                        goalsContainer.appendChild(goalItem);
-                                        
-                                        // Add event listeners to the new buttons
-                                        const updateBtn = goalItem.querySelector('.update-goal-btn');
-                                        if (updateBtn) {
-                                            updateBtn.addEventListener('click', function(event) {
-                                                event.preventDefault();
-                                                currentGoalId = this.getAttribute('data-goal-id');
-                                                
-                                                // Fetch current goal data
-                                                fetch(`/workouts/api/goal/${currentGoalId}/`)
-                                                    .then(response => {
-                                                        if (!response.ok) {
-                                                            throw new Error(`HTTP error! Status: ${response.status}`);
-                                                        }
-                                                        return response.json();
-                                                    })
-                                                    .then(data => {
-                                                        console.log('Fetched goal data:', data);
-                                                        populateGoalForm(data);
-                                                        updateGoalModal.show();
-                                                    })
-                                                    .catch(error => {
-                                                        console.error('Error fetching goal data:', error);
-                                                        showNotification('Error loading goal data. Please try again.', 'error');
-                                                    });
-                                            });
-                                        }
-                                        
-                                        const deleteBtn = goalItem.querySelector('.delete-goal-btn');
-                                        if (deleteBtn) {
-                                            deleteBtn.addEventListener('click', function() {
-                                                if (confirm('Are you sure you want to delete this goal?')) {
-                                                    const goalId = this.getAttribute('data-goal-id');
-                                                    console.log('Deleting goal with ID:', goalId);
-                                                    
-                                                    fetch(`/workouts/api/goal/${goalId}/delete/`, {
-                                                        method: 'POST',
-                                                        headers: {
-                                                            'X-CSRFToken': getCookie('csrftoken')
-                                                        }
-                                                    })
-                                                    .then(response => {
-                                                        if (!response.ok) {
-                                                            throw new Error(`HTTP error! Status: ${response.status}`);
-                                                        }
-                                                        return response.json();
-                                                    })
-                                                    .then(data => {
-                                                        console.log('Delete response:', data);
-                                                        
-                                                        if (data.success) {
-                                                            goalItem.remove();
-                                                            showNotification('Goal deleted successfully!', 'success');
-                                                            
-                                                            // If no goals left, show the "No goals" message
-                                                            if (document.querySelectorAll('.goal-item').length === 0) {
-                                                                const noGoalsMsg = document.createElement('p');
-                                                                noGoalsMsg.className = 'card-text';
-                                                                noGoalsMsg.id = 'noGoalsMessage';
-                                                                noGoalsMsg.textContent = 'No goals set yet.';
-                                                                goalsContainer.appendChild(noGoalsMsg);
-                                                            }
-                                                            
-                                                            // Check if we need to enable the add goal button
-                                                            checkGoalLimit();
-                                                        } else {
-                                                            showNotification('Error deleting goal: ' + (data.errors ? Object.values(data.errors).join(', ') : 'Unknown error'), 'error');
-                                                        }
-                                                    })
-                                                    .catch(error => {
-                                                        console.error('Error deleting goal:', error);
-                                                        showNotification('Error deleting goal. Please try again.', 'error');
-                                                    });
-                                                }
-                                            });
-                                        }
-                                    }
-                                });
-                                
-                                // Close the modal
-                                addGoalModal.hide();
-                                
-                                // Reset the form
-                                goalsList.innerHTML = createGoalForm(1);
-                                
-                                // Check if we need to disable the add goal button
-                                checkGoalLimit();
-                            })
-                            .catch(error => {
-                                console.error('Error fetching new goals:', error);
-                                // If there's an error fetching the new goals, just reload the page
-                                location.reload();
-                            });
-                        } else {
-                            // If no goals were saved, just reload the page
-                            location.reload();
-                        }
-                    } else if (errorCount > 0) {
-                        showNotification(`Failed to save any goals. Please try again.`, 'error');
-                    }
-                    return;
-                }
-                
-                fetch('/workouts/api/goal/add/', {
-                    method: 'POST',
-                    body: goals[index],
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken')
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Goal saved:', data);
-                    if (data.success) {
-                        savedCount++;
-                        // Store the ID of the saved goal
-                        if (data.id) {
-                            savedGoalIds.push(data.id);
-                        }
-                    } else {
-                        errorCount++;
-                        console.error('Error saving goal:', data.errors);
-                    }
-                    saveNextGoal(index + 1);
-                })
-                .catch(error => {
-                    console.error('Error saving goal:', error);
-                    errorCount++;
-                    saveNextGoal(index + 1);
-                });
-            };
-            
-            // Start saving goals
-            saveNextGoal(0);
-        });
-    }
-
     // Initialize workout confirmation modal
     const workoutModal = new bootstrap.Modal(document.getElementById('workoutConfirmationModal'));
     let currentWorkout = null;

@@ -3,19 +3,21 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
+from django.db.models import Sum, Count
 from .models import UserProfile
 from social.models import UserConnection
+from workouts.models import WorkoutGoal, Workout
 
 @login_required
 def index(request):
     # Get or create the user profile
     profile, created = UserProfile.objects.get_or_create(user=request.user)
+    goals = WorkoutGoal.objects.filter(user=request.user)
     
-    context = {
-        'user': request.user,
+    return render(request, 'user/index.html', {
         'profile': profile,
-    }
-    return render(request, 'user/index.html', context)
+        'goals': goals
+    })
 
 @login_required
 def update_username(request):
@@ -80,6 +82,22 @@ def profile(request, username=None):
     followers_count = followers.count()
     following_count = following.count()
     
+    # Calculate workout statistics
+    workout_stats = Workout.objects.filter(user=user).aggregate(
+        total_workouts=Count('id'),
+        total_calories=Sum('calories_burned'),
+        total_minutes=Sum('duration')
+    )
+    
+    # Update profile with calculated statistics
+    profile.workouts_completed = workout_stats['total_workouts'] or 0
+    profile.calories_burned = workout_stats['total_calories'] or 0
+    profile.active_minutes = workout_stats['total_minutes'] or 0
+    profile.save()
+    
+    # Get recent workouts
+    recent_workouts = Workout.objects.filter(user=user).order_by('-date')[:5]
+    
     context = {
         'profile_user': user,
         'profile': profile,
@@ -88,6 +106,7 @@ def profile(request, username=None):
         'following': following,
         'followers_count': followers_count,
         'following_count': following_count,
+        'recent_workouts': recent_workouts,
     }
     
     return render(request, 'user/profile.html', context)

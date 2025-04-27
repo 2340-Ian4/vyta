@@ -25,39 +25,50 @@
 
             <!-- Settings Sections -->
             <div class="settings-section mb-4">
-                <h5 class="mb-3" style="color: #00CED1;">Fitness Goals</h5>
-                <div class="list-group">
-                    <div class="list-group-item border-0 bg-light mb-2 rounded">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>Weight Loss</strong>
-                                <p class="text-muted mb-0">Target: 10kg by December 2025</p>
-                            </div>
-                            <span class="badge bg-custom-gradient rounded-pill">In Progress</span>
-                        </div>
-                    </div>
-                    <div class="list-group-item border-0 bg-light mb-2 rounded">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>Running</strong>
-                                <p class="text-muted mb-0">Target: 5km in 30 minutes</p>
-                            </div>
-                            <span class="badge bg-custom-gradient rounded-pill">In Progress</span>
-                        </div>
-                    </div>
-                    <div class="list-group-item border-0 bg-light mb-2 rounded">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>Strength Training</strong>
-                                <p class="text-muted mb-0">Target: 100kg bench press</p>
-                            </div>
-                            <span class="badge bg-custom-gradient rounded-pill">Not Started</span>
-                        </div>
-                    </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 style="color: #00CED1;">Fitness Goals</h5>
+                    <a href="{% url 'workouts.goal' %}" class="btn btn-custom-gradient btn-sm">
+                        <i class="fas fa-plus"></i> Add Goal
+                    </a>
                 </div>
-                <button type="button" class="btn btn-custom-gradient mt-3" data-bs-toggle="modal" data-bs-target="#editGoalsModal">
-                    Edit Goals
-                </button>
+                <div class="list-group">
+                    {% if goals %}
+                        {% for goal in goals %}
+                            <div class="list-group-item border-0 bg-light mb-2 rounded">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ goal.get_goal_type_display }}</strong>
+                                        <p class="text-muted mb-0">Target: {{ goal.target }}</p>
+                                        {% if goal.end_date %}
+                                            <p class="text-muted mb-0">End Date: {{ goal.end_date|date:"M d, Y" }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress" style="width: 100px; height: 8px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                style="width: {{ goal.progress }}%; background: linear-gradient(45deg, #FFD700, #FF8C00);" 
+                                                aria-valuenow="{{ goal.progress }}" 
+                                                aria-valuemin="0" 
+                                                aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-custom-gradient rounded-pill">{{ goal.progress }}%</span>
+                                        <button class="btn btn-sm btn-custom-gradient update-goal-btn" data-goal-id="{{ goal.id }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-goal-btn" data-goal-id="{{ goal.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <p class="text-muted mb-0">No goals set yet. Click "Add Goal" to get started!</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
 
             <!-- Account Settings -->
@@ -131,36 +142,130 @@
     </div>
 </div>
 
-<!-- Edit Goals Modal -->
-<div class="modal fade" id="editGoalsModal" tabindex="-1" aria-labelledby="editGoalsModalLabel" aria-hidden="true">
+<!-- Update Goal Modal -->
+<div class="modal fade" id="updateGoalModal" tabindex="-1" aria-labelledby="updateGoalModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header" style="background-color: #00CED1; color: white;">
-                <h5 class="modal-title" id="editGoalsModalLabel">Edit Fitness Goals</h5>
+                <h5 class="modal-title" id="updateGoalModalLabel">Update Goal</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="{% url 'user.update_goals' %}" method="POST">
+                <form id="updateGoalForm">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="goal1" class="form-label">Weight Loss Goal</label>
-                        <input type="text" class="form-control" id="goal1" name="goal1" value="10kg by December 2025">
+                        <label for="goal_type" class="form-label">Goal Type</label>
+                        <select class="form-select" id="goal_type" name="goal_type" required>
+                            <option value="weight_loss">Weight Loss</option>
+                            <option value="muscle_gain">Muscle Gain</option>
+                            <option value="endurance">Endurance</option>
+                            <option value="flexibility">Flexibility</option>
+                            <option value="general_fitness">General Fitness</option>
+                        </select>
                     </div>
                     <div class="mb-3">
-                        <label for="goal2" class="form-label">Running Goal</label>
-                        <input type="text" class="form-control" id="goal2" name="goal2" value="5km in 30 minutes">
+                        <label for="target" class="form-label">Target</label>
+                        <input type="text" class="form-control" id="target" name="target" required>
                     </div>
                     <div class="mb-3">
-                        <label for="goal3" class="form-label">Strength Goal</label>
-                        <input type="text" class="form-control" id="goal3" name="goal3" value="100kg bench press">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date">
+                    </div>
+                    <div class="mb-3">
+                        <label for="progress" class="form-label">Progress (%)</label>
+                        <input type="number" class="form-control" id="progress" name="progress" min="0" max="100" required>
                     </div>
                     <div class="text-end">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-custom-gradient">Save Goals</button>
+                        <button type="submit" class="btn btn-custom-gradient">Update Goal</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const updateGoalModal = new bootstrap.Modal(document.getElementById('updateGoalModal'));
+    let currentGoalId = null;
+
+    // Handle update goal button clicks
+    document.querySelectorAll('.update-goal-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            currentGoalId = this.getAttribute('data-goal-id');
+            
+            // Fetch current goal data
+            fetch(`/workouts/api/goal/${currentGoalId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('goal_type').value = data.goal_type;
+                    document.getElementById('target').value = data.target;
+                    document.getElementById('end_date').value = data.end_date;
+                    document.getElementById('progress').value = data.progress;
+                    updateGoalModal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading goal data. Please try again.');
+                });
+        });
+    });
+
+    // Handle goal update form submission
+    document.getElementById('updateGoalForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        fetch(`/workouts/api/goal/${currentGoalId}/update/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error updating goal. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating goal. Please try again.');
+        });
+    });
+
+    // Handle delete goal button clicks
+    document.querySelectorAll('.delete-goal-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            if (confirm('Are you sure you want to delete this goal?')) {
+                const goalId = this.getAttribute('data-goal-id');
+                
+                fetch(`/workouts/api/goal/${goalId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error deleting goal. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting goal. Please try again.');
+                });
+            }
+        });
+    });
+});
+</script>
 {% endblock content %}

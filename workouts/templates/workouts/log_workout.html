@@ -4,66 +4,216 @@
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-gradient text-white">
-                    <h3 class="mb-0">Log Workout</h3>
+        <div class="col-md-10">
+            <div class="workout-form-card">
+                <div class="form-header">
+                    <h2>Log Your Workout</h2>
+                    <p class="subtitle">Track your progress and stay motivated</p>
                 </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="{{ form.name.id_for_label }}" class="form-label">Workout Name</label>
+                <form method="post" class="workout-form">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="{{ form.name.id_for_label }}">
+                                <i class="fas fa-dumbbell"></i>
+                                Workout Name
+                            </label>
                             {{ form.name }}
                         </div>
-                        <div class="mb-3">
-                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                        <div class="form-group">
+                            <label for="{{ form.duration.id_for_label }}">
+                                <i class="fas fa-clock"></i>
+                                Duration (minutes)
+                            </label>
+                            {{ form.duration }}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.calories_burned.id_for_label }}">
+                                <i class="fas fa-fire"></i>
+                                Calories Burned
+                            </label>
+                            {{ form.calories_burned }}
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="{{ form.description.id_for_label }}">
+                                <i class="fas fa-info-circle"></i>
+                                Description
+                            </label>
+                            <small class="form-text">Describe your workout (e.g., "Full body workout", "Cardio session")</small>
                             {{ form.description }}
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.duration.id_for_label }}" class="form-label">Duration (minutes)</label>
-                                {{ form.duration }}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.calories_burned.id_for_label }}" class="form-label">Calories Burned</label>
-                                {{ form.calories_burned }}
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="{{ form.notes.id_for_label }}">
+                                <i class="fas fa-sticky-note"></i>
+                                Notes
+                            </label>
+                            <small class="form-text">Any additional notes about your workout</small>
                             {{ form.notes }}
                         </div>
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'workouts.index' %}" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-custom-gradient">Log Workout</button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="form-actions">
+                        <a href="{% url 'workouts.index' %}" class="btn-cancel">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-check"></i> Log Workout
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .bg-gradient {
-        background: linear-gradient(45deg, #FFD700, #FF8C00, #FF1493, #00CED1);
-        background-size: 200%;
+    .workout-form-card {
+        background: white;
+        border-radius: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        position: relative;
     }
-    
-    .card {
-        border: none;
-        border-radius: 15px;
+
+    .form-header {
+        background: linear-gradient(135deg, #FFD700, #FF8C00, #FF1493, #00CED1);
+        padding: 2rem;
+        text-align: center;
+        color: white;
     }
-    
+
+    .form-header h2 {
+        font-size: 2rem;
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .subtitle {
+        margin: 0.5rem 0 0;
+        opacity: 0.9;
+    }
+
+    .workout-form {
+        padding: 2rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        position: relative;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #333;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group label i {
+        color: #00CED1;
+    }
+
     .form-control {
-        border-radius: 10px;
-        border: 1px solid #ced4da;
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
     }
-    
+
+    .form-control:hover {
+        border-color: #FF8C00;
+        transform: translateY(-2px);
+    }
+
     .form-control:focus {
         border-color: #00CED1;
-        box-shadow: 0 0 0 0.2rem rgba(0, 206, 209, 0.25);
+        box-shadow: 0 0 0 4px rgba(0, 206, 209, 0.1);
+        outline: none;
+        transform: translateY(-2px);
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: none;
+    }
+
+    .form-text {
+        color: #666;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-cancel, .btn-submit {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel {
+        background: #f8f9fa;
+        color: #666;
+        border: 2px solid #e0e0e0;
+    }
+
+    .btn-cancel:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #FFD700, #FF8C00, #FF1493, #00CED1);
+        color: white;
+        border: none;
+        background-size: 200%;
+    }
+
+    .btn-submit:hover {
+        background-position: right;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .workout-form {
+            padding: 1.5rem;
+        }
+        
+        .form-header {
+            padding: 1.5rem;
+        }
     }
 </style>
 {% endblock content %} 

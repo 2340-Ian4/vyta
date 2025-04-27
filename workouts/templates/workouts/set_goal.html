@@ -2,73 +2,232 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-gradient text-white">
-                    <h3 class="mb-0">Set Workout Goal</h3>
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-10 col-lg-8">
+            <div class="goal-form-card">
+                <div class="form-header">
+                    <h2>Set Your Goal</h2>
+                    <p class="subtitle">Define your fitness objectives and track your progress</p>
                 </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="{{ form.goal_type.id_for_label }}" class="form-label">Goal Type</label>
-                            {{ form.goal_type }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="{{ form.target.id_for_label }}" class="form-label">Target</label>
+                <form method="post" class="goal-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="{{ form.goal_type.id_for_label }}">
+                            <i class="fas fa-bullseye"></i>
+                            Goal Type
+                        </label>
+                        {{ form.goal_type }}
+                    </div>
+                    <div class="goal-details-section">
+                        <div class="form-group">
+                            <label for="{{ form.target.id_for_label }}">
+                                <i class="fas fa-flag"></i>
+                                Target
+                            </label>
+                            <small class="form-text">Be specific about your target (e.g., "Lose 10 pounds", "Run 5 miles straight")</small>
                             {{ form.target }}
-                            <small class="form-text text-muted">Be specific about your target (e.g., "Lose 10 pounds", "Run 5 miles")</small>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.end_date.id_for_label }}" class="form-label">Target Date</label>
-                                {{ form.end_date }}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.progress.id_for_label }}" class="form-label">Current Progress (%)</label>
+                        <div class="goal-progress-section">
+                            <div class="form-group">
+                                <label for="{{ form.progress.id_for_label }}">
+                                    <i class="fas fa-chart-line"></i>
+                                    Current Progress (%)
+                                </label>
                                 {{ form.progress }}
                             </div>
+                            <div class="form-group">
+                                <label for="{{ form.end_date.id_for_label }}">
+                                    <i class="fas fa-calendar"></i>
+                                    Target Date
+                                </label>
+                                {{ form.end_date }}
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'workouts.index' %}" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-custom-gradient">Save Goal</button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="form-actions">
+                        <a href="{% url 'workouts.index' %}" class="btn-cancel">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-check"></i> Save Goal
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .bg-gradient {
-        background: linear-gradient(45deg, #FFD700, #FF8C00, #FF1493, #00CED1);
-        background-size: 200%;
+    .goal-form-card {
+        background: white;
+        border-radius: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        position: relative;
+        max-width: 800px;
+        margin: 0 auto;
     }
-    
-    .card {
-        border: none;
-        border-radius: 15px;
+
+    .form-header {
+        background: linear-gradient(135deg, #FFD700, #FF8C00, #FF1493, #00CED1);
+        padding: 2rem;
+        text-align: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
     }
-    
+
+    .form-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
+        background-size: 20px 20px;
+        opacity: 0.1;
+    }
+
+    .form-header h2 {
+        font-size: 2rem;
+        margin: 0;
+        font-weight: 600;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .subtitle {
+        margin: 0.5rem 0 0;
+        opacity: 0.9;
+    }
+
+    .goal-form {
+        padding: 2rem;
+    }
+
+    .goal-details-section {
+        display: grid;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .goal-progress-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .form-group {
+        position: relative;
+    }
+
+    .form-group label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #333;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group label i {
+        color: #00CED1;
+        font-size: 1.1rem;
+    }
+
     .form-control {
-        border-radius: 10px;
-        border: 1px solid #ced4da;
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
     }
-    
+
+    .form-control:hover {
+        border-color: #FF8C00;
+        transform: translateY(-2px);
+    }
+
     .form-control:focus {
         border-color: #00CED1;
-        box-shadow: 0 0 0 0.2rem rgba(0, 206, 209, 0.25);
+        box-shadow: 0 0 0 4px rgba(0, 206, 209, 0.1);
+        outline: none;
+        transform: translateY(-2px);
     }
-    
+
+    .form-text {
+        color: #666;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-cancel, .btn-submit {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel {
+        background: #f8f9fa;
+        color: #666;
+        border: 2px solid #e0e0e0;
+    }
+
+    .btn-cancel:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #FFD700, #FF8C00, #FF1493, #00CED1);
+        color: white;
+        border: none;
+        background-size: 200%;
+    }
+
+    .btn-submit:hover {
+        background-position: right;
+        transform: translateY(-2px);
+    }
+
     select.form-control {
         appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2300CED1' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
-        background-position: right 0.75rem center;
+        background-position: right 1rem center;
         background-size: 16px 12px;
+        padding-right: 2.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .goal-progress-section {
+            grid-template-columns: 1fr;
+        }
+        
+        .goal-form {
+            padding: 1.5rem;
+        }
+        
+        .form-header {
+            padding: 1.5rem;
+        }
     }
 </style>
 {% endblock content %} 

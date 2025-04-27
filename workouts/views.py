@@ -46,23 +46,30 @@ def log_workout(request):
 
 @login_required
 def set_goal(request):
-    try:
-        goal = WorkoutGoal.objects.get(user=request.user)
-    except WorkoutGoal.DoesNotExist:
-        goal = None
+    # Check if user has reached the goal limit
+    current_goals = WorkoutGoal.objects.filter(user=request.user).count()
+    max_goals = 3
+    
+    if current_goals >= max_goals and request.method == 'GET':
+        messages.warning(request, f'You can only have {max_goals} goals at a time. Please delete some goals before adding new ones.')
+        return redirect('workouts.index')
     
     if request.method == 'POST':
-        form = WorkoutGoalForm(request.POST, instance=goal)
+        form = WorkoutGoalForm(request.POST)
         if form.is_valid():
             goal = form.save(commit=False)
             goal.user = request.user
             goal.save()
-            messages.success(request, 'Goal updated successfully!')
+            messages.success(request, 'Goal added successfully!')
             return redirect('workouts.index')
     else:
-        form = WorkoutGoalForm(instance=goal)
+        form = WorkoutGoalForm()
     
-    return render(request, 'workouts/set_goal.html', {'form': form})
+    return render(request, 'workouts/set_goal.html', {
+        'form': form,
+        'current_goals': current_goals,
+        'max_goals': max_goals
+    })
 
 @login_required
 def get_goal_progress(request, goal_id):

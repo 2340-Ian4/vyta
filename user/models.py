@@ -9,7 +9,7 @@ class UserProfile(models.Model):
     bio = models.TextField(max_length=500, blank=True)
     location = models.CharField(max_length=100, blank=True)
     birth_date = models.DateField(null=True, blank=True)
-    profile_pic = models.ImageField(upload_to='profile_pics/', default='img/default-profile.png')
+    profile_pic = models.ImageField(upload_to='profile_pics/', default='default-profile.png')
     
     # Ban related fields
     is_banned = models.BooleanField(default=False)

@@ -1,25 +1,50 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .models import UserProfile
 
+@login_required
 def index(request):
-    # Dummy data for now
-    user_data = {
-        'username': 'JohnDoe',
-        'email': 'johndoe@example.com',
-        'profile_pic': 'img/default-profile.png',  # Default profile picture
+    # Get or create the user profile
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    context = {
+        'user': request.user,
+        'profile': profile,
     }
-    return render(request, 'user/index.html', {'user_data': user_data})
+    return render(request, 'user/index.html', context)
 
-def lifetime_stats(request):
-    # Dummy data for now
-    stats = {
-        'workouts_completed': 120,
-        'calories_burned': 50000,
-        'active_minutes': 1500,
-    }
-    return render(request, 'user/lifetime_stats.html', {'stats': stats})
+@login_required
+def update_username(request):
+    """
+    View to handle username updates.
+    """
+    if request.method == 'POST':
+        new_username = request.POST.get('username')
+        if new_username and new_username != request.user.username:
+            # Check if username is already taken
+            if User.objects.filter(username=new_username).exists():
+                messages.error(request, 'This username is already taken.')
+            else:
+                request.user.username = new_username
+                request.user.save()
+                messages.success(request, 'Username updated successfully!')
+        else:
+            messages.error(request, 'Please provide a valid username.')
+    
+    return redirect('user.index')
+
+@login_required
+def update_goals(request):
+    """
+    View to handle fitness goals updates.
+    """
+    if request.method == 'POST':
+        # This is a placeholder for now
+        messages.success(request, 'Fitness goals updated successfully!')
+    
+    return redirect('user.index')
 
 @login_required
 def profile(request, username=None):
@@ -61,3 +86,29 @@ def profile(request, username=None):
     }
     
     return render(request, 'user/profile.html', context)
+
+@login_required
+def update_profile_picture(request):
+    """
+    View to handle profile picture updates.
+    """
+    if request.method == 'POST' and request.FILES.get('profile_pic'):
+        profile = request.user.profile
+        profile.profile_pic = request.FILES['profile_pic']
+        profile.save()
+        messages.success(request, 'Profile picture updated successfully!')
+    else:
+        messages.error(request, 'Please select a valid image file.')
+    
+    return redirect('user.profile')
+
+@login_required
+def remove_profile_picture(request):
+    """
+    View to handle removing the profile picture.
+    """
+    profile = request.user.profile
+    profile.profile_pic = None
+    profile.save()
+    messages.success(request, 'Profile picture removed successfully!')
+    return redirect('user.profile')

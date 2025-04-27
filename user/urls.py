@@ -3,7 +3,10 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='user.index'),
-    path('lifetime-stats/', views.lifetime_stats, name='user.lifetime_stats'),
-    path('profile/', views.profile, name='user.profile'),  # Current user's profile
-    path('profile/<str:username>/', views.profile, name='user.profile.other'),  # Another user's profile
+    path('profile/update-picture/', views.update_profile_picture, name='user.update_picture'),
+    path('profile/remove-picture/', views.remove_profile_picture, name='user.remove_picture'),
+    path('profile/', views.profile, name='user.profile'),
+    path('profile/<str:username>/', views.profile, name='user.profile'),
+    path('update-username/', views.update_username, name='user.update_username'),
+    path('update-goals/', views.update_goals, name='user.update_goals'),
 ]

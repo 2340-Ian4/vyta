@@ -21,6 +21,7 @@ class UserProfile(models.Model):
     # Social stats
     followers_count = models.PositiveIntegerField(default=0)
     following_count = models.PositiveIntegerField(default=0)
+    allow_following = models.BooleanField(default=True)
     
     # Fitness stats
     workouts_completed = models.PositiveIntegerField(default=0)

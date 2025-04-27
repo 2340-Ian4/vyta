@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from .forms import CustomUserCreationForm, CustomErrorList
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from django.contrib.auth.decorators import login_required
+from user.models import UserProfile
 
 # Create your views here.
 
@@ -30,6 +31,18 @@ def login(request):
             return render(request, 'accounts/login.html',
                 {'template_data': template_data})
         else:
+            # Check if user is banned
+            try:
+                profile = UserProfile.objects.get(user=user)
+                if profile.is_banned:
+                    remaining_days = profile.get_ban_remaining_days()
+                    if remaining_days > 0:
+                        template_data['error'] = f'Your account has been temporarily banned. You can log in again in {remaining_days} days.'
+                        return render(request, 'accounts/login.html',
+                            {'template_data': template_data})
+            except UserProfile.DoesNotExist:
+                pass
+                
             auth_login(request, user)
             return redirect('home.index')
 

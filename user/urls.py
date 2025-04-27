@@ -9,4 +9,5 @@ urlpatterns = [
     path('profile/<str:username>/', views.profile, name='user.profile'),
     path('update-username/', views.update_username, name='user.update_username'),
     path('update-goals/', views.update_goals, name='user.update_goals'),
+    path('submit-complaint/', views.submit_complaint, name='user.submit_complaint'),
 ]

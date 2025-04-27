@@ -6,7 +6,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <!-- Profile Section -->
-            <div class="text-center mb-5">
+            <div class="text-center mb-5 animate-fade-in">
                 <img src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
                      alt="Profile Picture" 
                      class="rounded-circle mb-3" 
@@ -24,7 +24,7 @@
             </div>
 
             <!-- Settings Sections -->
-            <div class="settings-section mb-4">
+            <div class="settings-section mb-4 animate-slide-up">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 style="color: #00CED1;">Fitness Goals</h5>
                     <a href="{% url 'workouts.goal' %}" class="btn btn-custom-gradient btn-sm">
@@ -34,7 +34,7 @@
                 <div class="list-group">
                     {% if goals %}
                         {% for goal in goals %}
-                            <div class="list-group-item border-0 bg-light mb-2 rounded">
+                            <div class="list-group-item border-0 bg-light mb-2 rounded animate-slide-up-delay-{{ forloop.counter }}">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
                                         <strong>{{ goal.get_goal_type_display }}</strong>
@@ -71,8 +71,45 @@
                 </div>
             </div>
 
+            <!-- Complaints Section -->
+            <div class="settings-section mb-4 animate-slide-up-delay-1">
+                <h5 class="mb-3" style="color: #00CED1;">Feedback & Complaints</h5>
+                <button type="button" class="btn btn-custom-gradient" data-bs-toggle="modal" data-bs-target="#complaintModal">
+                    <i class="fas fa-comment-alt me-2"></i>Leave a Review or Complaint
+                </button>
+                
+                {% if user.complaints.all %}
+                    <div class="mt-4">
+                        <h6 class="mb-3">Your Previous Submissions</h6>
+                        <div class="list-group">
+                            {% for complaint in user.complaints.all %}
+                                <div class="list-group-item border-0 bg-light mb-2 rounded animate-slide-up-delay-{{ forloop.counter }}">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">{{ complaint.title }}</h6>
+                                            <p class="text-muted mb-1">{{ complaint.get_type_display }}</p>
+                                            <p class="mb-1">{{ complaint.description }}</p>
+                                            {% if complaint.admin_response %}
+                                                <div class="mt-2 p-2 bg-light rounded">
+                                                    <small class="text-muted">Admin Response:</small>
+                                                    <p class="mb-0">{{ complaint.admin_response }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <span class="badge {% if complaint.status == 'resolved' %}bg-success{% elif complaint.status == 'in_progress' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                            {{ complaint.get_status_display }}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">Submitted on {{ complaint.created_at|date:"M d, Y" }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
             <!-- Account Settings -->
-            <div class="settings-section">
+            <div class="settings-section animate-slide-up-delay-2">
                 <h5 class="mb-3" style="color: #00CED1;">Account</h5>
                 <a href="{% url 'accounts.logout' %}" class="btn btn-custom-gradient">Logout</a>
             </div>
@@ -185,6 +222,44 @@
     </div>
 </div>
 
+<!-- Complaint Modal -->
+<div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(45deg, #00CED1, #FF1493); color: white;">
+                <h5 class="modal-title" id="complaintModalLabel">Submit Feedback or Complaint</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'user.submit_complaint' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Type</label>
+                        <select class="form-select" id="type" name="type" required>
+                            <option value="bug">Bug Report</option>
+                            <option value="feature">Feature Request</option>
+                            <option value="complaint">Complaint</option>
+                            <option value="feedback">General Feedback</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-custom-gradient">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const updateGoalModal = new bootstrap.Modal(document.getElementById('updateGoalModal'));
@@ -268,4 +343,46 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<style>
+    .animate-fade-in {
+        animation: fadeIn 1s ease-out;
+    }
+
+    .animate-slide-up {
+        animation: slideUp 0.8s ease-out;
+    }
+
+    .animate-slide-up-delay-1 {
+        animation: slideUp 0.8s ease-out 0.2s both;
+    }
+
+    .animate-slide-up-delay-2 {
+        animation: slideUp 0.8s ease-out 0.4s both;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .badge {
+        padding: 0.5em 1em;
+    }
+</style>
 {% endblock content %}

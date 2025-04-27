@@ -29,4 +29,5 @@ urlpatterns = [
     path('achievements/', include('achievements.urls')),
     path('workouts/', include('workouts.urls')),
     path('user/', include('user.urls')),
+    path('stats/', include('stats.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

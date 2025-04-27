@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Sum, Count
-from .models import UserProfile
+from .models import UserProfile, Complaint
 from social.models import UserConnection
 from workouts.models import WorkoutGoal, Workout
 
@@ -136,3 +136,22 @@ def remove_profile_picture(request):
     profile.save()
     messages.success(request, 'Profile picture removed successfully!')
     return redirect('user.profile')
+
+@login_required
+def submit_complaint(request):
+    if request.method == 'POST':
+        type = request.POST.get('type')
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        
+        complaint = Complaint.objects.create(
+            user=request.user,
+            type=type,
+            title=title,
+            description=description
+        )
+        
+        messages.success(request, 'Your feedback has been submitted successfully!')
+        return redirect('user.index')
+    
+    return redirect('user.index')

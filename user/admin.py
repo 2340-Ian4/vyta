@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import UserProfile, Complaint
 
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
@@ -71,3 +71,31 @@ class UserProfileAdmin(admin.ModelAdmin):
             'fields': ('workouts_completed', 'calories_burned', 'active_minutes')
         }),
     )
+
+@admin.register(Complaint)
+class ComplaintAdmin(admin.ModelAdmin):
+    list_display = ('user', 'title', 'type', 'status', 'created_at', 'updated_at')
+    list_filter = ('type', 'status', 'created_at')
+    search_fields = ('user__username', 'title', 'description')
+    readonly_fields = ('created_at', 'updated_at')
+    fieldsets = (
+        ('User Information', {
+            'fields': ('user', 'type', 'title', 'description')
+        }),
+        ('Status Information', {
+            'fields': ('status', 'admin_response')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    actions = ['mark_as_resolved', 'mark_as_closed']
+
+    def mark_as_resolved(self, request, queryset):
+        queryset.update(status='resolved')
+    mark_as_resolved.short_description = "Mark selected complaints as resolved"
+
+    def mark_as_closed(self, request, queryset):
+        queryset.update(status='closed')
+    mark_as_closed.short_description = "Mark selected complaints as closed"

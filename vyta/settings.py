@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'social',
     'achievements',
     'workouts',
-    'user'
+    'user',
+    'stats'
 ]
 
 MIDDLEWARE = [

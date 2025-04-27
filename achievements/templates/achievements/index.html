@@ -3,8 +3,8 @@
 {% block content %}
 <header class="masthead" style="background: linear-gradient(45deg, #00CED1, #FF1493); background-size: 200%; text-white text-center py-4">
     <div class="container d-flex align-items-center flex-column pt-2">
-        <h2 class="text-white">Achievements</h2>
-        <p class="text-white">Track Your Progress!</p>
+        <h2 class="text-white animate-fade-in">Achievements</h2>
+        <p class="text-white animate-fade-in-delay">Track Your Progress!</p>
     </div>
 </header>
 
@@ -13,14 +13,14 @@
         <div class="row">
             <!-- Leaderboard Section -->
             <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm">
+                <div class="card h-100 shadow-sm animate-slide-up">
                     <div class="card-header" style="background: linear-gradient(45deg, #FFD700, #FF8C00); color: white;">
                         <h3 class="card-title mb-0">Leaderboard</h3>
                     </div>
                     <div class="card-body">
                         <div class="list-group">
                             {% for entry in leaderboard %}
-                                <div class="list-group-item">
+                                <div class="list-group-item animate-slide-up-delay-{{ forloop.counter }}">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h5 class="mb-1">{{ entry.name }}</h5>
                                         <span class="badge" style="background: linear-gradient(45deg, #FF1493, #00CED1); color: white;">{{ entry.progress }}%</span>
@@ -39,14 +39,14 @@
 
             <!-- Challenges Section -->
             <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm">
+                <div class="card h-100 shadow-sm animate-slide-up-delay-1">
                     <div class="card-header" style="background: linear-gradient(45deg, #FF1493, #00CED1); color: white;">
                         <h3 class="card-title mb-0">Challenges</h3>
                     </div>
                     <div class="card-body">
                         <div class="list-group">
                             {% for challenge in challenges %}
-                                <div class="list-group-item">
+                                <div class="list-group-item animate-slide-up-delay-{{ forloop.counter }}">
                                     <h5 class="mb-1">{{ challenge.title }}</h5>
                                     <p class="mb-1">{{ challenge.description }}</p>
                                 </div>
@@ -58,14 +58,14 @@
 
             <!-- Badges Section -->
             <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm">
+                <div class="card h-100 shadow-sm animate-slide-up-delay-2">
                     <div class="card-header" style="background: linear-gradient(45deg, #FFD700, #FF1493); color: white;">
                         <h3 class="card-title mb-0">Recent Badges</h3>
                     </div>
                     <div class="card-body">
                         <div class="list-group">
                             {% for badge in recent_badges %}
-                                <div class="list-group-item">
+                                <div class="list-group-item animate-slide-up-delay-{{ forloop.counter }}">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-medal fa-2x" style="background: linear-gradient(45deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-right: 1rem;"></i>
                                         <div>
@@ -89,6 +89,50 @@
 </div>
 
 <style>
+    .animate-fade-in {
+        animation: fadeIn 1s ease-out;
+    }
+
+    .animate-fade-in-delay {
+        animation: fadeIn 1s ease-out 0.3s both;
+    }
+
+    .animate-slide-up {
+        animation: slideUp 0.8s ease-out;
+    }
+
+    .animate-slide-up-delay-1 {
+        animation: slideUp 0.8s ease-out 0.2s both;
+    }
+
+    .animate-slide-up-delay-2 {
+        animation: slideUp 0.8s ease-out 0.4s both;
+    }
+
+    .animate-slide-up-delay-3 {
+        animation: slideUp 0.8s ease-out 0.6s both;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
     .card {
         border-radius: 10px;
         transition: transform 0.2s;

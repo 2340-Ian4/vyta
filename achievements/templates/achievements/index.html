@@ -43,11 +43,10 @@
 
                     <!-- Leaderboard Content -->
                     <div class="tab-content" id="leaderboardTabContent">
-                        {% for lb_type in leaderboard_types %}
-                        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="{{ lb_type.0 }}" role="tabpanel">
+                        <div class="tab-pane fade show active" id="calories" role="tabpanel">
                             <div class="list-group">
                                 {% for entry in leaderboards %}
-                                    {% if entry.leaderboard_type == lb_type.0 %}
+                                    {% if entry.leaderboard_type == 'calories_burned' %}
                                     <div class="list-group-item {% if entry.user == request.user %}active{% endif %}">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
@@ -65,7 +64,69 @@
                                 {% endfor %}
                             </div>
                         </div>
-                        {% endfor %}
+                        <div class="tab-pane fade" id="badges" role="tabpanel">
+                            <div class="list-group">
+                                {% for entry in leaderboards %}
+                                    {% if entry.leaderboard_type == 'badges_collected' %}
+                                    <div class="list-group-item {% if entry.user == request.user %}active{% endif %}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-1">{{ entry.user.username }}</h5>
+                                                <small class="text-muted">Rank #{{ entry.rank }}</small>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">{{ entry.score }}</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% empty %}
+                                <div class="list-group-item text-center text-muted">
+                                    No entries yet
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="minutes" role="tabpanel">
+                            <div class="list-group">
+                                {% for entry in leaderboards %}
+                                    {% if entry.leaderboard_type == 'active_minutes' %}
+                                    <div class="list-group-item {% if entry.user == request.user %}active{% endif %}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-1">{{ entry.user.username }}</h5>
+                                                <small class="text-muted">Rank #{{ entry.rank }}</small>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">{{ entry.score }}</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% empty %}
+                                <div class="list-group-item text-center text-muted">
+                                    No entries yet
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="workouts" role="tabpanel">
+                            <div class="list-group">
+                                {% for entry in leaderboards %}
+                                    {% if entry.leaderboard_type == 'workouts_completed' %}
+                                    <div class="list-group-item {% if entry.user == request.user %}active{% endif %}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-1">{{ entry.user.username }}</h5>
+                                                <small class="text-muted">Rank #{{ entry.rank }}</small>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">{{ entry.score }}</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% empty %}
+                                <div class="list-group-item text-center text-muted">
+                                    No entries yet
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

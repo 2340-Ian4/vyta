@@ -31,6 +31,9 @@ class UserProfile(models.Model):
     birth_date = models.DateField(null=True, blank=True)
     profile_pic = models.ImageField(upload_to='profile_pics/', default='default-profile.png')
     
+    # Profile completion status
+    is_profile_complete = models.BooleanField(default=False)
+    
     # Ban related fields
     is_banned = models.BooleanField(default=False)
     ban_start_date = models.DateTimeField(null=True, blank=True)

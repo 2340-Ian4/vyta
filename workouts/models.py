@@ -14,6 +14,11 @@ class Workout(models.Model):
     class Meta:
         ordering = ['-date']
     
+    def save(self, *args, **kwargs):
+        if not self.date:
+            self.date = timezone.now()
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return f"{self.name} - {self.date.strftime('%Y-%m-%d')}"
 

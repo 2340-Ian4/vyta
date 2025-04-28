@@ -3,8 +3,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Sum, Count
 from .models import Workout, WorkoutGoal
 from .forms import WorkoutForm, WorkoutGoalForm
+from achievements.models import LeaderboardEntry, LeaderboardType
+from user.models import UserProfile
+import logging
+
+logger = logging.getLogger(__name__)
 
 @login_required
 def index(request):
@@ -36,7 +44,103 @@ def log_workout(request):
         if form.is_valid():
             workout = form.save(commit=False)
             workout.user = request.user
+            workout.date = timezone.now()  # Explicitly set the date to now
             workout.save()
+            
+            logger.info(f"New workout saved: {workout.name} - {workout.calories_burned} calories at {workout.date}")
+            
+            # Update leaderboard data
+            today = timezone.now().date()
+            week_start = today - timedelta(days=today.weekday())
+            user_profile = UserProfile.objects.get(user=request.user)
+            
+            logger.info(f"Updating leaderboard for week of {week_start}")
+            
+            # Get all users with the same fitness level
+            users = UserProfile.objects.filter(fitness_level=user_profile.fitness_level)
+            logger.info(f"Found {users.count()} users with fitness level {user_profile.fitness_level}")
+            
+            # Update calories burned leaderboard
+            user_scores = []
+            for profile in users:
+                total_calories = Workout.objects.filter(
+                    user=profile.user,
+                    date__date__gte=week_start,
+                    date__date__lte=today
+                ).aggregate(total=Sum('calories_burned'))['total'] or 0
+                user_scores.append((profile.user, total_calories))
+                logger.info(f"User {profile.user.username}: {total_calories} calories")
+            
+            # Sort users by score in descending order
+            user_scores.sort(key=lambda x: x[1], reverse=True)
+            
+            # Update leaderboard entries
+            for rank, (user, score) in enumerate(user_scores, 1):
+                entry, created = LeaderboardEntry.objects.update_or_create(
+                    user=user,
+                    leaderboard_type=LeaderboardType.CALORIES_BURNED,
+                    week_start=week_start,
+                    defaults={
+                        'score': score,
+                        'rank': rank
+                    }
+                )
+                logger.info(f"Updated leaderboard entry for {user.username}: rank {rank}, score {score}")
+            
+            # Update active minutes leaderboard
+            user_scores = []
+            for profile in users:
+                total_minutes = Workout.objects.filter(
+                    user=profile.user,
+                    date__date__gte=week_start,
+                    date__date__lte=today
+                ).aggregate(total=Sum('duration'))['total'] or 0
+                user_scores.append((profile.user, total_minutes))
+                logger.info(f"User {profile.user.username}: {total_minutes} minutes")
+            
+            # Sort users by score in descending order
+            user_scores.sort(key=lambda x: x[1], reverse=True)
+            
+            # Update leaderboard entries
+            for rank, (user, score) in enumerate(user_scores, 1):
+                entry, created = LeaderboardEntry.objects.update_or_create(
+                    user=user,
+                    leaderboard_type=LeaderboardType.ACTIVE_MINUTES,
+                    week_start=week_start,
+                    defaults={
+                        'score': score,
+                        'rank': rank
+                    }
+                )
+                logger.info(f"Updated leaderboard entry for {user.username}: rank {rank}, score {score}")
+            
+            # Update workouts completed leaderboard
+            user_scores = []
+            for profile in users:
+                workout_count = Workout.objects.filter(
+                    user=profile.user,
+                    date__date__gte=week_start,
+                    date__date__lte=today
+                ).count()
+                user_scores.append((profile.user, workout_count))
+                logger.info(f"User {profile.user.username}: {workout_count} workouts")
+            
+            # Sort users by score in descending order
+            user_scores.sort(key=lambda x: x[1], reverse=True)
+            
+            # Update leaderboard entries
+            for rank, (user, score) in enumerate(user_scores, 1):
+                entry, created = LeaderboardEntry.objects.update_or_create(
+                    user=user,
+                    leaderboard_type=LeaderboardType.WORKOUTS_COMPLETED,
+                    week_start=week_start,
+                    defaults={
+                        'score': score,
+                        'rank': rank
+                    }
+                )
+                logger.info(f"Updated leaderboard entry for {user.username}: rank {rank}, score {score}")
+            
             messages.success(request, 'Workout logged successfully!')
             return redirect('workouts.index')
     else:

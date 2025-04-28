@@ -1,7 +1,27 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from .models import UserProfile, Complaint
+from .models import UserProfile, Complaint, Badge, UserBadge
+
+@admin.register(Badge)
+class BadgeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'requirement_type', 'requirement_value', 'created_at')
+    list_filter = ('requirement_type',)
+    search_fields = ('name', 'description')
+    ordering = ('requirement_type', 'requirement_value')
+
+@admin.register(UserBadge)
+class UserBadgeAdmin(admin.ModelAdmin):
+    list_display = ('user_profile', 'badge', 'earned_at')
+    list_filter = ('badge', 'earned_at')
+    search_fields = ('user_profile__user__username', 'badge__name')
+    date_hierarchy = 'earned_at'
+
+class UserBadgeInline(admin.TabularInline):
+    model = UserBadge
+    extra = 0
+    readonly_fields = ('earned_at',)
+    can_delete = False
 
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
@@ -22,7 +42,7 @@ class UserProfileInline(admin.StackedInline):
             'fields': ('followers_count', 'following_count', 'allow_following')
         }),
         ('Fitness Stats', {
-            'fields': ('workouts_completed', 'calories_burned', 'active_minutes')
+            'fields': ('workouts_completed', 'calories_burned', 'active_minutes', 'streak_days', 'last_workout_date')
         }),
     )
 
@@ -44,10 +64,11 @@ admin.site.register(User, CustomUserAdmin)
 # Register UserProfile separately for direct access
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'is_banned', 'ban_start_date', 'ban_duration_days')
-    list_filter = ('is_banned',)
+    list_display = ('user', 'is_banned', 'workouts_completed', 'calories_burned', 'active_minutes', 'streak_days')
+    list_filter = ('is_banned', 'fitness_level')
     search_fields = ('user__username', 'user__email')
     readonly_fields = ('ban_start_date',)
+    inlines = [UserBadgeInline]
     
     def get_ban_remaining_days(self, obj):
         return obj.get_ban_remaining_days()
@@ -68,9 +89,15 @@ class UserProfileAdmin(admin.ModelAdmin):
             'fields': ('followers_count', 'following_count', 'allow_following')
         }),
         ('Fitness Stats', {
-            'fields': ('workouts_completed', 'calories_burned', 'active_minutes')
+            'fields': ('workouts_completed', 'calories_burned', 'active_minutes', 'streak_days', 'last_workout_date')
         }),
     )
+    actions = ['check_and_award_badges']
+
+    def check_and_award_badges(self, request, queryset):
+        for profile in queryset:
+            profile.check_and_award_badges()
+    check_and_award_badges.short_description = "Check and award badges for selected users"
 
 @admin.register(Complaint)
 class ComplaintAdmin(admin.ModelAdmin):

@@ -8,79 +8,99 @@
     </div>
 </header>
 
-<div class="p-3">
-    <div class="container">
-        <div class="row">
-            <!-- Leaderboard Section -->
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm animate-slide-up">
-                    <div class="card-header" style="background: linear-gradient(45deg, #FFD700, #FF8C00); color: white;">
-                        <h3 class="card-title mb-0">Leaderboard</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="list-group">
-                            {% for entry in leaderboard %}
-                                <div class="list-group-item animate-slide-up-delay-{{ forloop.counter }}">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-1">{{ entry.name }}</h5>
-                                        <span class="badge" style="background: linear-gradient(45deg, #FF1493, #00CED1); color: white;">{{ entry.progress }}%</span>
-                                    </div>
-                                    <small class="text-muted">Goal: {{ entry.goal }}</small>
-                                    <div class="progress mt-2">
-                                        <div class="progress-bar" role="progressbar" style="width: {{ entry.progress }}%; background: linear-gradient(45deg, #FFD700, #FF8C00);" 
-                                             aria-valuenow="{{ entry.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
+<div class="container mt-4">
+    <!-- Leaderboard Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background: linear-gradient(45deg, #FFD700, #FF8C00); color: white;">
+                    <h3 class="card-title mb-0">Leaderboards - {{ user_fitness_level|title }} Level</h3>
                 </div>
-            </div>
+                <div class="card-body">
+                    <!-- Leaderboard Type Tabs -->
+                    <ul class="nav nav-pills mb-4 justify-content-center" id="leaderboardTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="calories-tab" data-bs-toggle="pill" data-bs-target="#calories" type="button" role="tab">
+                                <i class="fas fa-fire me-2"></i>Calories Burned
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="badges-tab" data-bs-toggle="pill" data-bs-target="#badges" type="button" role="tab">
+                                <i class="fas fa-medal me-2"></i>Badges Collected
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="minutes-tab" data-bs-toggle="pill" data-bs-target="#minutes" type="button" role="tab">
+                                <i class="fas fa-clock me-2"></i>Active Minutes
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="workouts-tab" data-bs-toggle="pill" data-bs-target="#workouts" type="button" role="tab">
+                                <i class="fas fa-dumbbell me-2"></i>Workouts Completed
+                            </button>
+                        </li>
+                    </ul>
 
-            <!-- Challenges Section -->
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm animate-slide-up-delay-1">
-                    <div class="card-header" style="background: linear-gradient(45deg, #FF1493, #00CED1); color: white;">
-                        <h3 class="card-title mb-0">Challenges</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="list-group">
-                            {% for challenge in challenges %}
-                                <div class="list-group-item animate-slide-up-delay-{{ forloop.counter }}">
-                                    <h5 class="mb-1">{{ challenge.title }}</h5>
-                                    <p class="mb-1">{{ challenge.description }}</p>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Badges Section -->
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm animate-slide-up-delay-2">
-                    <div class="card-header" style="background: linear-gradient(45deg, #FFD700, #FF1493); color: white;">
-                        <h3 class="card-title mb-0">Recent Badges</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="list-group">
-                            {% for badge in recent_badges %}
-                                <div class="list-group-item animate-slide-up-delay-{{ forloop.counter }}">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-medal fa-2x" style="background: linear-gradient(45deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-right: 1rem;"></i>
-                                        <div>
-                                            <h5 class="mb-1">{{ badge.name }}</h5>
-                                            <p class="mb-1">{{ badge.description }}</p>
+                    <!-- Leaderboard Content -->
+                    <div class="tab-content" id="leaderboardTabContent">
+                        {% for lb_type in leaderboard_types %}
+                        <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="{{ lb_type.0 }}" role="tabpanel">
+                            <div class="list-group">
+                                {% for entry in leaderboards %}
+                                    {% if entry.leaderboard_type == lb_type.0 %}
+                                    <div class="list-group-item {% if entry.user == request.user %}active{% endif %}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-1">{{ entry.user.username }}</h5>
+                                                <small class="text-muted">Rank #{{ entry.rank }}</small>
+                                            </div>
+                                            <span class="badge bg-primary rounded-pill">{{ entry.score }}</span>
                                         </div>
                                     </div>
+                                    {% endif %}
+                                {% empty %}
+                                <div class="list-group-item text-center text-muted">
+                                    No entries yet
                                 </div>
-                            {% endfor %}
+                                {% endfor %}
+                            </div>
                         </div>
-                        <div class="text-center mt-3">
-                            <a class="btn btn-custom-gradient" href="{% url 'achievements.badges' %}">
-                                <i class="fas fa-trophy me-2"></i>Show More Badges
-                            </a>
-                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Badges Section -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background: linear-gradient(45deg, #FFD700, #FF1493); color: white;">
+                    <h3 class="card-title mb-0">Recent Badges</h3>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for badge in recent_badges %}
+                            <div class="list-group-item">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-medal fa-2x" style="background: linear-gradient(45deg, #FFD700, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-right: 1rem;"></i>
+                                    <div>
+                                        <h5 class="mb-1">{{ badge.badge.name }}</h5>
+                                        <p class="mb-1">{{ badge.badge.description }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="list-group-item text-center text-muted">
+                                No badges earned yet
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a class="btn btn-custom-gradient" href="{% url 'achievements.badges' %}">
+                            <i class="fas fa-trophy me-2"></i>Show More Badges
+                        </a>
                     </div>
                 </div>
             </div>
@@ -89,75 +109,51 @@
 </div>
 
 <style>
-    .animate-fade-in {
-        animation: fadeIn 1s ease-out;
+    .nav-pills .nav-link {
+        color: #666;
+        border-radius: 20px;
+        padding: 8px 20px;
+        margin: 0 5px;
+        transition: all 0.3s ease;
     }
 
-    .animate-fade-in-delay {
-        animation: fadeIn 1s ease-out 0.3s both;
+    .nav-pills .nav-link:hover {
+        background-color: #f8f9fa;
     }
 
-    .animate-slide-up {
-        animation: slideUp 0.8s ease-out;
-    }
-
-    .animate-slide-up-delay-1 {
-        animation: slideUp 0.8s ease-out 0.2s both;
-    }
-
-    .animate-slide-up-delay-2 {
-        animation: slideUp 0.8s ease-out 0.4s both;
-    }
-
-    .animate-slide-up-delay-3 {
-        animation: slideUp 0.8s ease-out 0.6s both;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .nav-pills .nav-link.active {
+        background: linear-gradient(45deg, #00CED1, #FF1493);
+        color: white;
     }
 
     .card {
-        border-radius: 10px;
+        border-radius: 15px;
+        overflow: hidden;
         transition: transform 0.2s;
-        border: none;
     }
+
     .card:hover {
         transform: translateY(-5px);
     }
-    .card-header {
-        border-radius: 10px 10px 0 0 !important;
-        border: none;
-    }
+
     .list-group-item {
-        border-radius: 5px;
+        border-radius: 8px;
         margin-bottom: 5px;
-        border: 1px solid rgba(0,0,0,0.1);
+        transition: all 0.2s;
     }
-    .progress {
-        height: 8px;
-        border-radius: 4px;
-        background-color: #f0f0f0;
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
     }
+
+    .list-group-item.active {
+        background: linear-gradient(45deg, #00CED1, #FF1493);
+        border-color: transparent;
+    }
+
     .badge {
-        border-radius: 15px;
-        padding: 5px 10px;
+        font-size: 1rem;
+        padding: 8px 12px;
     }
 </style>
 {% endblock content %}

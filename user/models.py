@@ -3,6 +3,26 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
 
+class Badge(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    icon = models.CharField(max_length=50, default='fa-medal')  # Font Awesome icon class
+    requirement_type = models.CharField(max_length=50, choices=[
+        ('workouts_completed', 'Workouts Completed'),
+        ('calories_burned', 'Calories Burned'),
+        ('active_minutes', 'Active Minutes'),
+        ('streak_days', 'Streak Days'),
+        ('special', 'Special Achievement')
+    ])
+    requirement_value = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['requirement_type', 'requirement_value']
+
 # Create your models here.
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -34,6 +54,11 @@ class UserProfile(models.Model):
     workouts_completed = models.PositiveIntegerField(default=0)
     calories_burned = models.PositiveIntegerField(default=0)
     active_minutes = models.PositiveIntegerField(default=0)
+    streak_days = models.PositiveIntegerField(default=0)
+    last_workout_date = models.DateField(null=True, blank=True)
+    
+    # Badge related
+    badges = models.ManyToManyField(Badge, through='UserBadge')
     
     def __str__(self):
         return f"{self.user.username}'s Profile"
@@ -49,6 +74,31 @@ class UserProfile(models.Model):
             self.save()
             return 0
         return (ban_end_date - timezone.now()).days
+
+    def check_and_award_badges(self):
+        """Check if user qualifies for any new badges based on their stats"""
+        for badge in Badge.objects.all():
+            if not self.badges.filter(id=badge.id).exists():  # Only check for badges user doesn't have
+                if badge.requirement_type == 'workouts_completed' and self.workouts_completed >= badge.requirement_value:
+                    UserBadge.objects.create(user_profile=self, badge=badge)
+                elif badge.requirement_type == 'calories_burned' and self.calories_burned >= badge.requirement_value:
+                    UserBadge.objects.create(user_profile=self, badge=badge)
+                elif badge.requirement_type == 'active_minutes' and self.active_minutes >= badge.requirement_value:
+                    UserBadge.objects.create(user_profile=self, badge=badge)
+                elif badge.requirement_type == 'streak_days' and self.streak_days >= badge.requirement_value:
+                    UserBadge.objects.create(user_profile=self, badge=badge)
+
+class UserBadge(models.Model):
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+    earned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user_profile', 'badge']
+        ordering = ['-earned_at']
+
+    def __str__(self):
+        return f"{self.user_profile.user.username} - {self.badge.name}"
 
 class Complaint(models.Model):
     COMPLAINT_TYPES = [

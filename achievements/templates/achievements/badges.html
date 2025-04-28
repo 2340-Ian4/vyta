@@ -10,25 +10,61 @@
 
 <div class="p-3">
     <div class="container">
-        <div class="row">
-            {% for badge in all_badges %}
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-header" style="background: linear-gradient(45deg, {% cycle '#00CED1' '#FFD700' %}, {% cycle '#FF1493' '#FF8C00' %}); color: white;">
-                        <h3 class="card-title mb-0">{{ badge.name }}</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="fas fa-medal fa-3x" style="background: linear-gradient(45deg, {% cycle '#00CED1' '#FFD700' %}, {% cycle '#FF1493' '#FF8C00' %}); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-right: 1rem;"></i>
-                            <div>
-                                <p class="mb-0">{{ badge.description }}</p>
+        {% if all_badges %}
+            <div class="row">
+                {% for badge in all_badges %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm {% if badge.earned %}border-success{% else %}opacity-50{% endif %}">
+                        <div class="card-header" style="background: linear-gradient(45deg, {% cycle '#00CED1' '#FFD700' %}, {% cycle '#FF1493' '#FF8C00' %}); color: white;">
+                            <h3 class="card-title mb-0">{{ badge.name }}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas {{ badge.icon }} fa-3x" style="background: linear-gradient(45deg, {% cycle '#00CED1' '#FFD700' %}, {% cycle '#FF1493' '#FF8C00' %}); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-right: 1rem;"></i>
+                                <div>
+                                    <p class="mb-0">{{ badge.description }}</p>
+                                    {% if not badge.earned %}
+                                        <small class="text-muted">
+                                            {% if badge.requirement_type == 'workouts_completed' %}
+                                                Complete {{ badge.requirement_value }} workouts
+                                            {% elif badge.requirement_type == 'calories_burned' %}
+                                                Burn {{ badge.requirement_value }} calories
+                                            {% elif badge.requirement_type == 'active_minutes' %}
+                                                Accumulate {{ badge.requirement_value }} active minutes
+                                            {% elif badge.requirement_type == 'streak_days' %}
+                                                Maintain a {{ badge.requirement_value }} day streak
+                                            {% elif badge.requirement_type == 'special' %}
+                                                Win a weekly leaderboard
+                                            {% endif %}
+                                        </small>
+                                        {% if badge.progress > 0 %}
+                                            <div class="progress mt-2" style="height: 5px;">
+                                                <div class="progress-bar" role="progressbar" style="width: {{ badge.progress }}%" aria-valuenow="{{ badge.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <small class="text-muted">Progress: {{ badge.progress|floatformat:0 }}%</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <small class="text-success">
+                                            <i class="fas fa-check-circle"></i> Earned {{ badge.earned_at|date:"M d, Y" }}
+                                        </small>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-medal fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No Badges Yet</h4>
+                <p class="text-muted">Complete workouts and achieve milestones to earn badges!</p>
+                <a href="{% url 'workouts.log_workout' %}" class="btn btn-custom-gradient mt-3">
+                    <i class="fas fa-plus me-2"></i>Log Your First Workout
+                </a>
+            </div>
+        {% endif %}
         <div class="text-center mt-4">
             <a class="btn btn-custom-gradient" href="{% url 'achievements.index' %}">
                 <i class="fas fa-arrow-left me-2"></i>Back to Achievements
@@ -52,6 +88,16 @@
     }
     .card-body {
         background-color: #fff;
+    }
+    .border-success {
+        border: 2px solid #28a745 !important;
+    }
+    .progress {
+        background-color: #e9ecef;
+        border-radius: 10px;
+    }
+    .progress-bar {
+        background: linear-gradient(45deg, #00CED1, #FF1493);
     }
 </style>
 {% endblock content %}

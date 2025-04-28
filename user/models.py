@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Badge(models.Model):
     name = models.CharField(max_length=100)
@@ -80,16 +83,28 @@ class UserProfile(models.Model):
 
     def check_and_award_badges(self):
         """Check if user qualifies for any new badges based on their stats"""
-        for badge in Badge.objects.all():
-            if not self.badges.filter(id=badge.id).exists():  # Only check for badges user doesn't have
-                if badge.requirement_type == 'workouts_completed' and self.workouts_completed >= badge.requirement_value:
-                    UserBadge.objects.create(user_profile=self, badge=badge)
-                elif badge.requirement_type == 'calories_burned' and self.calories_burned >= badge.requirement_value:
-                    UserBadge.objects.create(user_profile=self, badge=badge)
-                elif badge.requirement_type == 'active_minutes' and self.active_minutes >= badge.requirement_value:
-                    UserBadge.objects.create(user_profile=self, badge=badge)
-                elif badge.requirement_type == 'streak_days' and self.streak_days >= badge.requirement_value:
-                    UserBadge.objects.create(user_profile=self, badge=badge)
+        # Get all badges that haven't been earned yet
+        earned_badges = self.badges.all()
+        available_badges = Badge.objects.exclude(id__in=earned_badges)
+        
+        for badge in available_badges:
+            should_award = False
+            
+            if badge.requirement_type == 'workouts_completed':
+                should_award = self.workouts_completed >= badge.requirement_value
+            elif badge.requirement_type == 'calories_burned':
+                should_award = self.calories_burned >= badge.requirement_value
+            elif badge.requirement_type == 'active_minutes':
+                should_award = self.active_minutes >= badge.requirement_value
+            elif badge.requirement_type == 'streak_days':
+                should_award = self.streak_days >= badge.requirement_value
+            elif badge.requirement_type == 'special':
+                # Special badges are awarded through other means (e.g., weekly champions)
+                continue
+            
+            if should_award:
+                UserBadge.objects.create(user_profile=self, badge=badge)
+                logger.info(f"Awarded {badge.name} to {self.user.username}")
 
 class UserBadge(models.Model):
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)

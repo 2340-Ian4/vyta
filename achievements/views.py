@@ -7,11 +7,18 @@ from .models import LeaderboardEntry, LeaderboardType
 from user.models import UserProfile, Badge, UserBadge
 from workouts.models import Workout
 import logging
+from django.db import models
 
 logger = logging.getLogger(__name__)
 
 def award_weekly_champion_badges(week_start, user_profile, leaderboard_type):
     """Award weekly champion badges to the top user in each leaderboard type"""
+    # Only award badges for previous weeks (not the current week)
+    today = timezone.localtime(timezone.now()).date()
+    if week_start >= today:
+        logger.info(f"Skipping badge award for current week {week_start}")
+        return
+        
     # Get the top user for this leaderboard type
     top_entry = LeaderboardEntry.objects.filter(
         week_start=week_start,
@@ -26,7 +33,19 @@ def award_weekly_champion_badges(week_start, user_profile, leaderboard_type):
         
         if badge and not UserBadge.objects.filter(user_profile=user_profile, badge=badge).exists():
             UserBadge.objects.create(user_profile=user_profile, badge=badge)
-            logger.info(f"Awarded {badge_name} to {user_profile.user.username}")
+            logger.info(f"Awarded {badge_name} to {user_profile.user.username} for week of {week_start}")
+            
+            # Update the badges collected leaderboard
+            badge_count = UserBadge.objects.filter(user_profile=user_profile).count()
+            LeaderboardEntry.objects.update_or_create(
+                user=user_profile.user,
+                leaderboard_type=LeaderboardType.BADGES_COLLECTED,
+                week_start=week_start,
+                defaults={
+                    'score': badge_count,
+                    'rank': 0  # Will be updated after sorting
+                }
+            )
 
 def check_weekly_milestones(user_profile, week_start, today):
     """Check and award milestone badges for weekly achievements"""
@@ -190,18 +209,39 @@ def index(request):
 def badges(request):
     # Get all badges and user's earned badges
     user_profile = UserProfile.objects.get(user=request.user)
-    all_badges = Badge.objects.all()
     earned_badges = UserBadge.objects.filter(user_profile=user_profile).select_related('badge')
     
-    # Create a list of badges with earned status
+    # Get all badges that have valid requirements
+    all_badges = Badge.objects.filter(
+        requirement_type__in=['workouts_completed', 'calories_burned', 'active_minutes', 'streak_days', 'special']
+    ).distinct()
+    
+    # Create a list of badges with earned status and progress
     badges_with_status = []
     for badge in all_badges:
         earned = earned_badges.filter(badge=badge).exists()
+        
+        # Calculate progress for unearned badges
+        progress = 0
+        if not earned:
+            if badge.requirement_type == 'workouts_completed':
+                progress = min(100, (user_profile.workouts_completed / badge.requirement_value) * 100)
+            elif badge.requirement_type == 'calories_burned':
+                progress = min(100, (user_profile.calories_burned / badge.requirement_value) * 100)
+            elif badge.requirement_type == 'active_minutes':
+                progress = min(100, (user_profile.active_minutes / badge.requirement_value) * 100)
+            elif badge.requirement_type == 'streak_days':
+                progress = min(100, (user_profile.streak_days / badge.requirement_value) * 100)
+        
         badges_with_status.append({
             'name': badge.name,
             'description': badge.description,
+            'icon': badge.icon,
             'earned': earned,
-            'earned_at': earned_badges.get(badge=badge).earned_at if earned else None
+            'earned_at': earned_badges.get(badge=badge).earned_at if earned else None,
+            'requirement_type': badge.requirement_type,
+            'requirement_value': badge.requirement_value,
+            'progress': progress
         })
     
     return render(request, 'achievements/badges.html', {'all_badges': badges_with_status})

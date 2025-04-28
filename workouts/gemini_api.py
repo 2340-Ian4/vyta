@@ -36,7 +36,7 @@ def get_workout_suggestions(context):
         
         For each workout, provide:
         1. Name (short description, less than 40 characters)
-        2. Description (detailed workout plan)
+        2. Description (detailed workout plan that explicitly mentions which specific goal it's targeting and how it will help achieve that goal)
         3. Duration (in minutes)
         4. Estimated calories burned
         
@@ -50,7 +50,10 @@ def get_workout_suggestions(context):
             }}
         ]
         
-        IMPORTANT: Your response must be a valid JSON array. Do not include any other text or explanations.
+        IMPORTANT: 
+        - Your response must be a valid JSON array. Do not include any other text or explanations.
+        - Each workout description must explicitly mention which specific goal it's targeting and how it will help achieve that goal.
+        - For example, if a goal is "Bench Press: 135 lbs for 8 reps", the workout description should explain how the exercises will help build strength and endurance to achieve that specific bench press goal.
         """
         
         # Call Gemini API

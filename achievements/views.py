@@ -10,6 +10,58 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def award_weekly_champion_badges(week_start, user_profile, leaderboard_type):
+    """Award weekly champion badges to the top user in each leaderboard type"""
+    # Get the top user for this leaderboard type
+    top_entry = LeaderboardEntry.objects.filter(
+        week_start=week_start,
+        leaderboard_type=leaderboard_type,
+        user__profile__fitness_level=user_profile.fitness_level
+    ).order_by('-score').first()
+    
+    if top_entry and top_entry.user == user_profile.user:
+        # Get the corresponding badge
+        badge_name = f"Weekly Champion - {leaderboard_type.replace('_', ' ').title()}"
+        badge = Badge.objects.filter(name=badge_name).first()
+        
+        if badge and not UserBadge.objects.filter(user_profile=user_profile, badge=badge).exists():
+            UserBadge.objects.create(user_profile=user_profile, badge=badge)
+            logger.info(f"Awarded {badge_name} to {user_profile.user.username}")
+
+def check_weekly_milestones(user_profile, week_start, today):
+    """Check and award milestone badges for weekly achievements"""
+    # Get weekly stats
+    workout_stats = Workout.objects.filter(
+        user=user_profile.user,
+        date__date__gte=week_start,
+        date__date__lte=today
+    ).aggregate(
+        total_calories=Coalesce(Sum('calories_burned'), Value(0), output_field=IntegerField()),
+        total_workouts=Count('id'),
+        total_minutes=Coalesce(Sum('duration'), Value(0), output_field=IntegerField())
+    )
+    
+    # Check calorie milestone
+    if workout_stats['total_calories'] >= 1000:
+        badge = Badge.objects.filter(name="Calorie Crusher").first()
+        if badge and not UserBadge.objects.filter(user_profile=user_profile, badge=badge).exists():
+            UserBadge.objects.create(user_profile=user_profile, badge=badge)
+            logger.info(f"Awarded Calorie Crusher to {user_profile.user.username}")
+    
+    # Check workout milestone
+    if workout_stats['total_workouts'] >= 5:
+        badge = Badge.objects.filter(name="Workout Warrior").first()
+        if badge and not UserBadge.objects.filter(user_profile=user_profile, badge=badge).exists():
+            UserBadge.objects.create(user_profile=user_profile, badge=badge)
+            logger.info(f"Awarded Workout Warrior to {user_profile.user.username}")
+    
+    # Check active minutes milestone
+    if workout_stats['total_minutes'] >= 300:
+        badge = Badge.objects.filter(name="Time Master").first()
+        if badge and not UserBadge.objects.filter(user_profile=user_profile, badge=badge).exists():
+            UserBadge.objects.create(user_profile=user_profile, badge=badge)
+            logger.info(f"Awarded Time Master to {user_profile.user.username}")
+
 def index(request):
     # Get the start of the current week (Monday)
     today = timezone.localtime(timezone.now()).date()
@@ -101,6 +153,13 @@ def index(request):
         for rank, entry in enumerate(type_entries, 1):
             entry.rank = rank
             entry.save()
+            
+            # Award weekly champion badges
+            if rank == 1:
+                award_weekly_champion_badges(week_start, entry.user.profile, leaderboard_type)
+    
+    # Check weekly milestones for the current user
+    check_weekly_milestones(user_profile, week_start, today)
     
     # Get updated entries with new ranks
     entries = LeaderboardEntry.objects.filter(
@@ -145,6 +204,6 @@ def badges(request):
             'earned_at': earned_badges.get(badge=badge).earned_at if earned else None
         })
     
-    return render(request, 'achievements/badges.html', {'badges': badges_with_status})
+    return render(request, 'achievements/badges.html', {'all_badges': badges_with_status})
 
 # Create your views here.

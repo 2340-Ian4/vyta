@@ -2,6 +2,13 @@
 {% load static %}
 
 {% block content %}
+<header class="masthead" style="background: linear-gradient(45deg, #00CED1, #FF1493); background-size: 200%; text-white text-center py-4">
+    <div class="container d-flex align-items-center flex-column pt-2">
+        <h2 class="text-white animate-fade-in">Your Workouts</h2>
+        <p class="text-white animate-fade-in-delay">Track Your Fitness Journey</p>
+    </div>
+</header>
+
 <div class="container mt-5 mb-5">
     <div class="row">
         <!-- Progress Section -->
@@ -502,24 +509,18 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             console.log(`Updating progress from ${currentProgress} to ${newProgress}`);
                             
-                            // Force a DOM update by removing and re-adding the progress bar
-                            const progressContainer = progressBar.parentElement;
-                            const newProgressBar = progressBar.cloneNode(true);
-                            
-                            // Update the new progress bar
-                            newProgressBar.style.width = `${newProgress}%`;
-                            newProgressBar.textContent = `${newProgress}%`;
-                            newProgressBar.setAttribute('aria-valuenow', newProgress);
+                            // Update the progress bar
+                            progressBar.style.width = `${newProgress}%`;
+                            progressBar.textContent = `${newProgress}%`;
+                            progressBar.setAttribute('aria-valuenow', newProgress);
                             
                             // Update color based on progress level
                             if (newProgress < 30) {
-                                newProgressBar.style.background = 'linear-gradient(45deg, #FF4500, #FF6347)';
-                            } else if (newProgress < 70) {
-                                newProgressBar.style.background = 'linear-gradient(45deg, #FFD700, #FF8C00)';
+                                progressBar.style.background = 'linear-gradient(45deg, #FF4500, #FF6347)';
                             } else if (newProgress < 100) {
-                                newProgressBar.style.background = 'linear-gradient(45deg, #32CD32, #228B22)';
+                                progressBar.style.background = 'linear-gradient(45deg, #FFD700, #FF8C00)';
                             } else {
-                                newProgressBar.style.background = 'linear-gradient(45deg, #00FF00, #008000)';
+                                progressBar.style.background = 'linear-gradient(45deg, #32CD32, #228B22)';
                                 
                                 // Add completion effects
                                 goalItem.classList.add('goal-completed');
@@ -536,9 +537,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                     updateBtn.style.display = 'none';
                                 }
                             }
-                            
-                            // Replace the old progress bar with the new one
-                            progressContainer.replaceChild(newProgressBar, progressBar);
                         }
                         
                         // Update the goal type and target
@@ -611,7 +609,6 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             if (confirm('Are you sure you want to delete this goal?')) {
                 const goalId = this.getAttribute('data-goal-id');
-                console.log('Deleting goal with ID:', goalId);
                 
                 fetch(`/workouts/api/goal/${goalId}/delete/`, {
                     method: 'POST',
@@ -619,12 +616,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         'X-CSRFToken': getCookie('csrftoken')
                     }
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
                     console.log('Delete response:', data);
                     
@@ -639,7 +631,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             // If no goals left, show the "No goals" message
                             if (document.querySelectorAll('.goal-item').length === 0) {
-                                location.reload(); // Refresh to show "No goals" message
+                                const goalsContainer = document.getElementById('goalsContainer');
+                                goalsContainer.innerHTML = `
+                                    <div class="text-center py-3">
+                                        <p class="text-muted mb-0">No goals set yet. Click "Add Goal" to get started!</p>
+                                    </div>
+                                `;
                             }
                         } else {
                             console.error('Goal item not found in DOM');

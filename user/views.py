@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Sum, Count
-from .models import UserProfile, Complaint
+from .models import UserProfile, Complaint, UserBadge
 from social.models import UserConnection
 from workouts.models import WorkoutGoal, Workout
 
@@ -98,6 +98,11 @@ def profile(request, username=None):
     # Get recent workouts
     recent_workouts = Workout.objects.filter(user=user).order_by('-date')[:5]
     
+    # Get user's achievements
+    achievements = UserBadge.objects.filter(
+        user_profile=profile
+    ).select_related('badge').order_by('-earned_at')
+    
     context = {
         'profile_user': user,
         'profile': profile,
@@ -107,6 +112,7 @@ def profile(request, username=None):
         'followers_count': followers_count,
         'following_count': following_count,
         'recent_workouts': recent_workouts,
+        'achievements': achievements,
     }
     
     return render(request, 'user/profile.html', context)

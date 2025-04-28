@@ -103,7 +103,7 @@
                     </div>
                     <div class="goal-progress-container">
                       <div class="progress">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ goal.progress }}%" aria-valuenow="{{ goal.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar progress-bar-striped" role="progressbar" style="width: {{ goal.progress }}%" aria-valuenow="{{ goal.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
                       </div>
                       <span class="progress-text">{{ goal.progress }}% Complete</span>
                     </div>
@@ -1108,15 +1108,60 @@
           // Show success toast or notification
           showNotification('Workout logged successfully!', 'success');
           
-          // Reload the page after a short delay to show the new workout
-          setTimeout(() => window.location.reload(), 1500);
+          // Update the recent workouts list
+          const recentWorkoutsList = document.querySelector('.recent-workouts-list');
+          if (recentWorkoutsList) {
+            // Create new workout card
+            const workoutCard = document.createElement('div');
+            workoutCard.className = 'workout-card';
+            workoutCard.innerHTML = `
+              <div class="workout-icon-badge general-icon">
+                <i class="fas fa-dumbbell"></i>
+              </div>
+              <div class="workout-details">
+                <h6 class="workout-name">${currentWorkout.name}</h6>
+                <div class="workout-stats">
+                  <span><i class="fas fa-clock"></i> ${currentWorkout.duration} min</span>
+                  <span><i class="fas fa-fire"></i> ${currentWorkout.calories} cal</span>
+                </div>
+                <div class="workout-date">
+                  ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' })}
+                </div>
+              </div>
+            `;
+            
+            // Add to the beginning of the list
+            recentWorkoutsList.insertBefore(workoutCard, recentWorkoutsList.firstChild);
+            
+            // Remove the last workout card if there are more than 4
+            const workoutCards = recentWorkoutsList.querySelectorAll('.workout-card');
+            if (workoutCards.length > 4) {
+              workoutCards[workoutCards.length - 1].remove();
+            }
+            
+            // Update stats if they exist
+            const statsData = document.querySelectorAll('.stats-data h3');
+            if (statsData.length >= 3) {
+              // Update workouts count
+              const workoutsCount = parseInt(statsData[0].textContent) + 1;
+              statsData[0].textContent = workoutsCount;
+              
+              // Update calories burned
+              const caloriesBurned = parseInt(statsData[1].textContent) + parseInt(currentWorkout.calories);
+              statsData[1].textContent = caloriesBurned;
+              
+              // Update active minutes
+              const activeMinutes = parseInt(statsData[2].textContent) + parseInt(currentWorkout.duration);
+              statsData[2].textContent = activeMinutes;
+            }
+          }
         } else {
           showNotification('Error: ' + data.message, 'error');
-          
-          // Reset button state
-          document.getElementById('confirmWorkoutBtn').innerHTML = '<i class="fas fa-check-circle me-1"></i> Log This Workout';
-          document.getElementById('confirmWorkoutBtn').disabled = false;
         }
+        
+        // Reset button state
+        document.getElementById('confirmWorkoutBtn').innerHTML = '<i class="fas fa-check-circle me-1"></i> Log This Workout';
+        document.getElementById('confirmWorkoutBtn').disabled = false;
       })
       .catch(error => {
         console.error('Error:', error);

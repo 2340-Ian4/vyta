@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from .models import UserConnection, Post, Like, Comment, Activity, PostReport
-from user.models import UserProfile
+from user.models import UserProfile, UserBadge
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db import models
@@ -85,6 +85,11 @@ def profile(request, id):
     # Get recent workouts
     recent_workouts = Workout.objects.filter(user=profile_user).order_by('-date')[:5]
     
+    # Get user's achievements
+    achievements = UserBadge.objects.filter(
+        user_profile=profile
+    ).select_related('badge').order_by('-earned_at')
+    
     context = {
         'profile_user': profile_user,
         'profile': profile,
@@ -95,6 +100,7 @@ def profile(request, id):
         'followers_count': followers.count(),
         'following_count': following.count(),
         'recent_workouts': recent_workouts,
+        'achievements': achievements,
     }
     
     return render(request, 'social/profile.html', context)

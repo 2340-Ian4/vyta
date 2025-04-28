@@ -1,14 +1,287 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Statistics{% endblock %}
+{% block title %}Statistics - Vyta{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-container {
+        position: relative;
+        margin: auto;
+        height: 300px;
+        width: 100%;
+    }
+    .card {
+        transition: transform 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .card-header {
+        background: linear-gradient(45deg, #00CED1, #FF1493);
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+        padding: 1rem;
+        border: none;
+    }
+    .card-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+    .animate-fade-in {
+        animation: fadeIn 1s ease-out;
+    }
+    .animate-fade-in-delay {
+        animation: fadeIn 1s ease-out 0.3s both;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
+<header class="masthead" style="background: linear-gradient(45deg, #00CED1, #FF1493); background-size: 200%; text-white text-center py-4">
+    <div class="container d-flex align-items-center flex-column pt-2">
+        <h2 class="text-white animate-fade-in">Your Fitness Statistics</h2>
+        <p class="text-white animate-fade-in-delay">Track Your Progress!</p>
+    </div>
+</header>
+
 <div class="container mt-4">
-    <h1>Statistics</h1>
+    {% if not has_data %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        No workout data available yet. Start logging your workouts to see your statistics!
+    </div>
+    {% else %}
     <div class="row">
-        <div class="col-md-12">
-            <p>Your workout statistics will be displayed here.</p>
+        <!-- Workout Frequency Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card animate-fade-in">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-line me-2"></i>Workout Frequency</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="workoutFrequencyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workout Types Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card animate-fade-in-delay">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-chart-pie me-2"></i>Workout Types Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="workoutTypesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calories Burned -->
+        <div class="col-md-6 mb-4">
+            <div class="card animate-fade-in">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-fire me-2"></i>Calories Burned</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="caloriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Minutes -->
+        <div class="col-md-6 mb-4">
+            <div class="card animate-fade-in-delay">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-clock me-2"></i>Active Minutes</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="activeMinutesChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
+    {% endif %}
 </div>
+
+{% if has_data %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Common chart options
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    font: {
+                        family: "'Poppins', sans-serif"
+                    }
+                }
+            }
+        }
+    };
+
+    try {
+        // Parse the data from Django context
+        const workoutData = {{ workout_data|safe }};
+        
+        // Workout Frequency Chart
+        const frequencyCtx = document.getElementById('workoutFrequencyChart');
+        if (frequencyCtx) {
+            new Chart(frequencyCtx, {
+                type: 'line',
+                data: {
+                    labels: workoutData.workouts_per_month.labels,
+                    datasets: [{
+                        label: 'Workouts',
+                        data: workoutData.workouts_per_month.data,
+                        borderColor: '#00CED1',
+                        backgroundColor: 'rgba(0, 206, 209, 0.1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: Object.assign({}, commonOptions, {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                font: {
+                                    family: "'Poppins', sans-serif"
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: "'Poppins', sans-serif"
+                                }
+                            }
+                        }
+                    }
+                })
+            });
+        }
+
+        // Workout Types Chart
+        const typesCtx = document.getElementById('workoutTypesChart');
+        if (typesCtx) {
+            new Chart(typesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: workoutData.workout_types.labels,
+                    datasets: [{
+                        data: workoutData.workout_types.data,
+                        backgroundColor: [
+                            '#00CED1',
+                            '#FF1493',
+                            '#FFD700',
+                            '#FF8C00',
+                            '#4B0082'
+                        ]
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+
+        // Calories Chart
+        const caloriesCtx = document.getElementById('caloriesChart');
+        if (caloriesCtx) {
+            new Chart(caloriesCtx, {
+                type: 'bar',
+                data: {
+                    labels: workoutData.calories_data.labels,
+                    datasets: [{
+                        label: 'Calories Burned',
+                        data: workoutData.calories_data.data,
+                        backgroundColor: '#FF1493'
+                    }]
+                },
+                options: Object.assign({}, commonOptions, {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    family: "'Poppins', sans-serif"
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: "'Poppins', sans-serif"
+                                }
+                            }
+                        }
+                    }
+                })
+            });
+        }
+
+        // Active Minutes Chart
+        const minutesCtx = document.getElementById('activeMinutesChart');
+        if (minutesCtx) {
+            new Chart(minutesCtx, {
+                type: 'bar',
+                data: {
+                    labels: workoutData.active_minutes.labels,
+                    datasets: [{
+                        label: 'Active Minutes',
+                        data: workoutData.active_minutes.data,
+                        backgroundColor: '#FFD700'
+                    }]
+                },
+                options: Object.assign({}, commonOptions, {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    family: "'Poppins', sans-serif"
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: "'Poppins', sans-serif"
+                                }
+                            }
+                        }
+                    }
+                })
+            });
+        }
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+        // Display error message to user
+        const charts = document.querySelectorAll('.card');
+        charts.forEach(card => {
+            const canvas = card.querySelector('canvas');
+            if (canvas) {
+                canvas.style.display = 'none';
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'alert alert-danger';
+                errorDiv.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Error loading chart data. Please try refreshing the page.';
+                card.querySelector('.card-body').appendChild(errorDiv);
+            }
+        });
+    }
+});
+</script>
+{% endif %}
 {% endblock %} 

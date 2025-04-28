@@ -260,77 +260,20 @@
     </div>
   </div>
 
-  <!-- Suggested Workouts Section -->
+  <!-- AI Workout Suggestions -->
   <div class="row mb-4">
     <div class="col-12">
       <div class="card dashboard-card">
         <div class="card-header">
-          <h4><i class="fas fa-bolt me-2"></i>Suggested Workouts</h4>
+          <h4><i class="fas fa-dumbbell me-2"></i>Suggested Workouts</h4>
         </div>
-        <div class="card-body px-4 py-4">
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <div class="workout-suggestion-card">
-                <div class="workout-suggestion-header">
-                  <h5>Full Body Workout</h5>
-                  <span class="workout-level">{{ fitness_level }}</span>
-                </div>
-                <div class="workout-suggestion-body">
-                  <div class="workout-specs">
-                    <div><i class="fas fa-clock"></i> 30 min</div>
-                    <div><i class="fas fa-fire"></i> 150 cal</div>
-                  </div>
-                  <p>A 30-minute full-body workout focusing on strength and endurance.</p>
-                  <button class="btn btn-custom-gradient w-100 start-workout-btn" 
-                          data-workout-name="Full Body Workout"
-                          data-workout-description="A 30-minute full-body workout focusing on strength and endurance."
-                          data-workout-duration="30"
-                          data-workout-calories="150"
-                          data-workout-notes="">Start Workout</button>
-                </div>
+        <div class="card-body">
+          <div id="suggestions-container" class="row">
+            <div class="col-12 text-center">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
               </div>
-            </div>
-            <div class="col-md-4 mb-3">
-              <div class="workout-suggestion-card">
-                <div class="workout-suggestion-header">
-                  <h5>Cardio Blast</h5>
-                  <span class="workout-level">{{ fitness_level }}</span>
-                </div>
-                <div class="workout-suggestion-body">
-                  <div class="workout-specs">
-                    <div><i class="fas fa-clock"></i> 20 min</div>
-                    <div><i class="fas fa-fire"></i> 180 cal</div>
-                  </div>
-                  <p>A 20-minute high-intensity cardio session to boost metabolism.</p>
-                  <button class="btn btn-custom-gradient w-100 start-workout-btn" 
-                          data-workout-name="Cardio Blast"
-                          data-workout-description="A 20-minute high-intensity cardio session to boost metabolism."
-                          data-workout-duration="20"
-                          data-workout-calories="180"
-                          data-workout-notes="">Start Workout</button>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4 mb-3">
-              <div class="workout-suggestion-card">
-                <div class="workout-suggestion-header">
-                  <h5>Strength Training</h5>
-                  <span class="workout-level">{{ fitness_level }}</span>
-                </div>
-                <div class="workout-suggestion-body">
-                  <div class="workout-specs">
-                    <div><i class="fas fa-clock"></i> 40 min</div>
-                    <div><i class="fas fa-fire"></i> 200 cal</div>
-                  </div>
-                  <p>A 40-minute strength training session targeting major muscle groups.</p>
-                  <button class="btn btn-custom-gradient w-100 start-workout-btn" 
-                          data-workout-name="Strength Training"
-                          data-workout-description="A 40-minute strength training session targeting major muscle groups."
-                          data-workout-duration="40"
-                          data-workout-calories="200"
-                          data-workout-notes="">Start Workout</button>
-                </div>
-              </div>
+              <p class="mt-2">Loading personalized workout suggestions...</p>
             </div>
           </div>
         </div>
@@ -1049,164 +992,105 @@
       font-size: 1.5rem;
     }
   }
+
+  /* Refresh Button Styles */
+  .refresh-suggestions {
+    transition: all 0.3s ease;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(45deg, #00CED1, #FF1493);
+    border: none;
+    color: white;
+  }
+
+  .refresh-suggestions:hover {
+    transform: rotate(180deg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .refresh-suggestions i {
+    font-size: 14px;
+  }
+
+  .refresh-suggestions.fa-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
 </style>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Modal for workout confirmation
-    const workoutModal = new bootstrap.Modal(document.getElementById('workoutConfirmationModal'));
-    let currentWorkout = {};
-
-    // Handle start workout button clicks
-    document.querySelectorAll('.start-workout-btn').forEach(button => {
-      button.addEventListener('click', function() {
-        currentWorkout = {
-          name: this.dataset.workoutName,
-          description: this.dataset.workoutDescription,
-          duration: this.dataset.workoutDuration,
-          calories: this.dataset.workoutCalories,
-          notes: this.dataset.workoutNotes
-        };
-
-        // Update modal content
-        document.getElementById('modal-workout-name').textContent = currentWorkout.name;
-        document.getElementById('modal-workout-duration').textContent = currentWorkout.duration + ' minutes';
-        document.getElementById('modal-workout-calories').textContent = currentWorkout.calories + ' calories';
-
-        // Show the modal
-        workoutModal.show();
-      });
-    });
-
-    // Handle workout confirmation
-    document.getElementById('confirmWorkoutBtn').addEventListener('click', function() {
-      // Show loading state
-      this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Logging...';
-      this.disabled = true;
-      
-      // Use fetch to log the workout
-      fetch('{% url "workouts.log_workout_ajax" %}', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-          name: currentWorkout.name,
-          description: currentWorkout.description,
-          duration: currentWorkout.duration,
-          calories_burned: currentWorkout.calories,
-          notes: currentWorkout.notes
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Close the modal
-          workoutModal.hide();
-          
-          // Show success toast or notification
-          showNotification('Workout logged successfully!', 'success');
-          
-          // Update the recent workouts list
-          const recentWorkoutsList = document.querySelector('.recent-workouts-list');
-          if (recentWorkoutsList) {
-            // Create new workout card
-            const workoutCard = document.createElement('div');
-            workoutCard.className = 'workout-card';
-            workoutCard.innerHTML = `
-              <div class="workout-icon-badge general-icon">
-                <i class="fas fa-dumbbell"></i>
-              </div>
-              <div class="workout-details">
-                <h6 class="workout-name">${currentWorkout.name}</h6>
-                <div class="workout-stats">
-                  <span><i class="fas fa-clock"></i> ${currentWorkout.duration} min</span>
-                  <span><i class="fas fa-fire"></i> ${currentWorkout.calories} cal</span>
-                </div>
-                <div class="workout-date">
-                  ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' })}
-                </div>
-              </div>
-            `;
-            
-            // Add to the beginning of the list
-            recentWorkoutsList.insertBefore(workoutCard, recentWorkoutsList.firstChild);
-            
-            // Remove the last workout card if there are more than 4
-            const workoutCards = recentWorkoutsList.querySelectorAll('.workout-card');
-            if (workoutCards.length > 4) {
-              workoutCards[workoutCards.length - 1].remove();
-            }
-            
-            // Update stats if they exist
-            const statsData = document.querySelectorAll('.stats-data h3');
-            if (statsData.length >= 3) {
-              // Update workouts count
-              const workoutsCount = parseInt(statsData[0].textContent) + 1;
-              statsData[0].textContent = workoutsCount;
-              
-              // Update calories burned
-              const caloriesBurned = parseInt(statsData[1].textContent) + parseInt(currentWorkout.calories);
-              statsData[1].textContent = caloriesBurned;
-              
-              // Update active minutes
-              const activeMinutes = parseInt(statsData[2].textContent) + parseInt(currentWorkout.duration);
-              statsData[2].textContent = activeMinutes;
-            }
-          }
-        } else {
-          showNotification('Error: ' + data.message, 'error');
-        }
-        
-        // Reset button state
-        document.getElementById('confirmWorkoutBtn').innerHTML = '<i class="fas fa-check-circle me-1"></i> Log This Workout';
-        document.getElementById('confirmWorkoutBtn').disabled = false;
+    // Load suggestions
+    fetch('/workouts/suggestions/')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('suggestions-container').innerHTML = html;
+        attachWorkoutButtonListeners();
       })
       .catch(error => {
-        console.error('Error:', error);
-        showNotification('There was an error logging your workout.', 'error');
-        
-        // Reset button state
-        document.getElementById('confirmWorkoutBtn').innerHTML = '<i class="fas fa-check-circle me-1"></i> Log This Workout';
-        document.getElementById('confirmWorkoutBtn').disabled = false;
-      });
-    });
-
-    // Simple notification function
-    function showNotification(message, type) {
-      // Create toast container if it doesn't exist
-      let toastContainer = document.querySelector('.toast-container');
-      if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-        document.body.appendChild(toastContainer);
-      }
-      
-      // Create toast
-      const toastEl = document.createElement('div');
-      toastEl.className = `toast align-items-center ${type === 'success' ? 'bg-success' : 'bg-danger'} text-white border-0`;
-      toastEl.setAttribute('role', 'alert');
-      toastEl.setAttribute('aria-live', 'assertive');
-      toastEl.setAttribute('aria-atomic', 'true');
-      
-      toastEl.innerHTML = `
-        <div class="d-flex">
-          <div class="toast-body">
-            ${message}
+        console.error('Error loading suggestions:', error);
+        document.getElementById('suggestions-container').innerHTML = `
+          <div class="col-12 text-center">
+            <p class="text-danger">Error loading suggestions. Please try refreshing the page.</p>
           </div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-      `;
-      
-      toastContainer.appendChild(toastEl);
-      
-      const toast = new bootstrap.Toast(toastEl, {
-        autohide: true,
-        delay: 3000
+        `;
       });
-      
-      toast.show();
+
+    function attachWorkoutButtonListeners() {
+      // Add click event listeners to all start workout buttons
+      document.querySelectorAll('.start-workout-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const workoutData = {
+            name: this.dataset.workoutName,
+            description: this.dataset.workoutDescription,
+            duration: this.dataset.workoutDuration,
+            calories: this.dataset.workoutCalories,
+            notes: this.dataset.workoutNotes
+          };
+
+          // Create FormData object
+          const formData = new FormData();
+          formData.append('name', workoutData.name);
+          formData.append('description', workoutData.description);
+          formData.append('duration', workoutData.duration);
+          formData.append('calories_burned', workoutData.calories);
+          formData.append('notes', workoutData.notes || '');
+          formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+          // Send workout data to server
+          fetch('/workouts/log/ajax/', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              showNotification('Workout logged successfully!', 'success');
+              // Reload the page to update the history
+              setTimeout(() => window.location.reload(), 1500);
+            } else {
+              showNotification('Error logging workout: ' + data.message, 'error');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error logging workout. Please try again.', 'error');
+          });
+        });
+      });
     }
 
     // CSRF token helper function

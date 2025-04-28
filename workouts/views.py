@@ -6,7 +6,7 @@ from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Sum, Count
-from .models import Workout, WorkoutGoal
+from .models import Workout, WorkoutGoal, WorkoutSuggestion
 from .forms import WorkoutForm, WorkoutGoalForm
 from achievements.models import LeaderboardEntry, LeaderboardType
 from user.models import UserProfile
@@ -411,23 +411,74 @@ def log_workout_ajax(request):
 
 @login_required
 def get_suggestions(request):
-    """View to get AI-generated workout suggestions"""
+    """Get personalized workout suggestions using Gemini API."""
     try:
-        # Get user profile for personalized suggestions
-        user_profile = UserProfile.objects.get(user=request.user)
+        # Check if we should force refresh
+        force_refresh = request.GET.get('refresh') == 'true'
         
-        # Get user's active goals
+        # Get existing suggestions if available and not forcing refresh
+        if not force_refresh:
+            existing_suggestions = WorkoutSuggestion.objects.filter(user=request.user)
+            if existing_suggestions.exists():
+                return render(request, 'workouts/suggestions.html', {
+                    'suggestions': existing_suggestions
+                })
+
+        # Get user's fitness profile and goals
+        profile = request.user.profile
         goals = WorkoutGoal.objects.filter(user=request.user)
-        goals_info = [f"{goal.get_goal_type_display()}: {goal.target} ({goal.progress}% complete)" for goal in goals]
         
-        # Get AI-generated workout suggestions
-        logger.info("Fetching workout suggestions for user: %s", request.user.username)
-        ai_workouts = get_workout_suggestions(user_profile, goals_info)
-        logger.info("Received %d workout suggestions", len(ai_workouts))
+        # Prepare context for Gemini
+        context = {
+            'fitness_level': profile.fitness_level,
+            'goals': [f"{goal.get_goal_type_display()}: {goal.target}" for goal in goals],
+            'preferences': "No specific preferences"  # Default value since workout_preferences doesn't exist
+        }
+        
+        # Get suggestions from Gemini
+        suggestions = get_workout_suggestions(context)
+        
+        # Delete existing suggestions
+        WorkoutSuggestion.objects.filter(user=request.user).delete()
+        
+        # Save new suggestions
+        for suggestion in suggestions:
+            WorkoutSuggestion.objects.create(
+                user=request.user,
+                name=suggestion['name'],
+                description=suggestion['description'],
+                duration=suggestion['duration'],
+                calories=suggestion['calories']
+            )
         
         return render(request, 'workouts/suggestions.html', {
-            'ai_workouts': ai_workouts,
+            'suggestions': WorkoutSuggestion.objects.filter(user=request.user)
         })
     except Exception as e:
-        logger.error(f"Error getting suggestions: {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f"Error getting workout suggestions: {str(e)}")
+        return render(request, 'workouts/suggestions.html', {
+            'error': f'Error generating workout suggestions: {str(e)}'
+        })
+
+@login_required
+def update_goal_progress(request, goal_id):
+    """Update goal progress and trigger suggestions refresh."""
+    try:
+        goal = WorkoutGoal.objects.get(id=goal_id, user=request.user)
+        progress = int(request.POST.get('progress', 0))
+        
+        if not 0 <= progress <= 100:
+            return JsonResponse({'success': False, 'message': 'Progress must be between 0 and 100'})
+        
+        goal.progress = progress
+        goal.save()
+        
+        # Clear cached suggestions when goal is updated
+        if 'workout_suggestions' in request.session:
+            del request.session['workout_suggestions']
+        
+        return JsonResponse({'success': True})
+    except WorkoutGoal.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Goal not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)})

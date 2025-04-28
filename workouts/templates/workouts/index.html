@@ -31,6 +31,9 @@
                                             <button class="btn btn-sm btn-custom-gradient update-goal-btn" data-goal-id="{{ goal.id }}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
+                                            <button class="btn btn-sm btn-success update-progress-btn" data-goal-id="{{ goal.id }}">
+                                                <i class="fas fa-chart-line"></i>
+                                            </button>
                                             <button class="btn btn-sm btn-danger delete-goal-btn" data-goal-id="{{ goal.id }}">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -120,8 +123,11 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm animate-slide-up-delay-3">
-                <div class="card-header" style="background: linear-gradient(45deg, #00CED1, #FF1493); color: white;">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(45deg, #00CED1, #FF1493); color: white;">
                     <h3 class="mb-0" style="font-weight: bold; font-size: 1.5rem;">Suggested Workouts</h3>
+                    <button class="btn btn-sm btn-outline-light refresh-suggestions" title="Refresh suggestions">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                 </div>
                 <div class="card-body">
                     <div id="suggestions-container" class="row">
@@ -384,6 +390,44 @@
             opacity: 0;
         }
     }
+
+    /* Refresh Button Styles */
+    .refresh-suggestions {
+        transition: all 0.3s ease;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        color: white;
+    }
+
+    .refresh-suggestions:hover {
+        transform: rotate(180deg);
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .refresh-suggestions i {
+        font-size: 14px;
+    }
+
+    .refresh-suggestions.fa-spin {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
 </style>
 
 <script>
@@ -622,23 +666,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Load suggestions asynchronously
-    fetch('/workouts/suggestions/')
-        .then(response => response.text())
-        .then(html => {
-            document.getElementById('suggestions-container').innerHTML = html;
-            // Reattach event listeners after loading new content
-            attachWorkoutButtonListeners();
-        })
-        .catch(error => {
-            console.error('Error loading suggestions:', error);
-            document.getElementById('suggestions-container').innerHTML = `
-                <div class="col-12 text-center">
-                    <p class="text-danger">Error loading suggestions. Please try refreshing the page.</p>
-                </div>
-            `;
-        });
-
     // Initialize workout confirmation modal
     const workoutModal = new bootstrap.Modal(document.getElementById('workoutConfirmationModal'));
     let currentWorkout = null;
@@ -703,6 +730,92 @@ document.addEventListener('DOMContentLoaded', function() {
                 showNotification('Error logging workout. Please try again.', 'error');
             });
         }
+    });
+
+    // Handle progress update button clicks
+    document.querySelectorAll('.update-progress-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const goalId = this.getAttribute('data-goal-id');
+            const newProgress = prompt('Enter new progress percentage (0-100):');
+            
+            if (newProgress !== null) {
+                const progress = parseInt(newProgress);
+                if (isNaN(progress) || progress < 0 || progress > 100) {
+                    showNotification('Please enter a valid number between 0 and 100', 'error');
+                    return;
+                }
+
+                // Send progress update to server
+                fetch(`/workouts/api/goal/${goalId}/update-progress/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ progress: progress })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update progress bar
+                        const progressBar = document.querySelector(`.goal-item[data-goal-id="${goalId}"] .progress-bar`);
+                        progressBar.style.width = `${progress}%`;
+                        progressBar.textContent = `${progress}%`;
+                        progressBar.setAttribute('aria-valuenow', progress);
+                        
+                        // Show success message
+                        showNotification('Progress updated successfully!', 'success');
+                    } else {
+                        showNotification('Error updating progress: ' + data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error updating progress. Please try again.', 'error');
+                });
+            }
+        });
+    });
+
+    // Load suggestions asynchronously
+    fetch('/workouts/suggestions/')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('suggestions-container').innerHTML = html;
+            // Reattach event listeners after loading new content
+            attachWorkoutButtonListeners();
+        })
+        .catch(error => {
+            console.error('Error loading suggestions:', error);
+            document.getElementById('suggestions-container').innerHTML = `
+                <div class="col-12 text-center">
+                    <p class="text-danger">Error loading suggestions. Please try refreshing the page.</p>
+                </div>
+            `;
+        });
+
+    // Handle refresh button click
+    document.querySelector('.refresh-suggestions').addEventListener('click', function() {
+        this.classList.add('fa-spin');
+        // Reload suggestions with refresh parameter
+        fetch('/workouts/suggestions/?refresh=true')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('suggestions-container').innerHTML = html;
+                // Reattach event listeners after loading new content
+                attachWorkoutButtonListeners();
+            })
+            .catch(error => {
+                console.error('Error refreshing suggestions:', error);
+                document.getElementById('suggestions-container').innerHTML = `
+                    <div class="col-12 text-center">
+                        <p class="text-danger">Error refreshing suggestions. Please try again later.</p>
+                    </div>
+                `;
+            })
+            .finally(() => {
+                setTimeout(() => this.classList.remove('fa-spin'), 1000);
+            });
     });
 });
 </script>

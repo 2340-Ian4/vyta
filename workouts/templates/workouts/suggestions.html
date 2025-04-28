@@ -1,19 +1,30 @@
-{% for workout in ai_workouts %}
-<div class="col-md-4 mb-3">
-    <div class="card h-100 animate-slide-up-delay-{{ forloop.counter }}">
-        <div class="card-body">
-            <h5 class="card-title">{{ workout.name }}</h5>
-            <div class="workout-specs mb-3">
-                <span class="me-3"><i class="fas fa-clock"></i> {{ workout.duration }} min</span>
-                <span><i class="fas fa-fire"></i> {{ workout.calories }} cal</span>
+{% if error %}
+<div class="col-12 text-center">
+    <p class="text-danger">{{ error }}</p>
+</div>
+{% elif suggestions %}
+    {% for workout in suggestions %}
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 animate-slide-up-delay-{{ forloop.counter }}">
+            <div class="card-body">
+                <h5 class="card-title">{{ workout.name }}</h5>
+                <div class="workout-specs mb-3">
+                    <span class="me-3"><i class="fas fa-clock"></i> {{ workout.duration }} min</span>
+                    <span><i class="fas fa-fire"></i> {{ workout.calories }} cal</span>
+                </div>
+                <p class="card-text">{{ workout.description|truncatechars:100 }}</p>
+                <button class="btn btn-custom-gradient start-workout-btn" 
+                        data-workout-name="{{ workout.name }}"
+                        data-workout-description="{{ workout.description }}"
+                        data-workout-duration="{{ workout.duration }}"
+                        data-workout-calories="{{ workout.calories }}"
+                        data-workout-notes="">Start Workout</button>
             </div>
-            <button class="btn btn-custom-gradient start-workout-btn" 
-                    data-workout-name="{{ workout.name }}"
-                    data-workout-description="{{ workout.description }}"
-                    data-workout-duration="{{ workout.duration }}"
-                    data-workout-calories="{{ workout.calories }}"
-                    data-workout-notes="">Start Workout</button>
         </div>
     </div>
+    {% endfor %}
+{% else %}
+<div class="col-12 text-center">
+    <p class="text-muted">No workout suggestions available at this time.</p>
 </div>
-{% endfor %} 
+{% endif %} 

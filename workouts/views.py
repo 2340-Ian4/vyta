@@ -40,6 +40,9 @@ def history(request):
 
 @login_required
 def log_workout(request):
+    # Get the return_to parameter, default to workouts.index
+    return_to = request.GET.get('return_to', 'workouts.index')
+    
     if request.method == 'POST':
         form = WorkoutForm(request.POST)
         if form.is_valid():
@@ -50,10 +53,33 @@ def log_workout(request):
             
             logger.info(f"New workout saved: {workout.name} - {workout.calories_burned} calories at {workout.date}")
             
+            # Update user profile stats
+            user_profile = UserProfile.objects.get(user=request.user)
+            user_profile.workouts_completed += 1
+            user_profile.calories_burned += workout.calories_burned
+            user_profile.active_minutes += workout.duration
+            
+            # Update streak
+            today = timezone.now().date()
+            if user_profile.last_workout_date:
+                day_diff = (today - user_profile.last_workout_date).days
+                if day_diff <= 1:  # Either today or yesterday
+                    user_profile.streak_days += 1 if day_diff == 1 else 0
+                else:
+                    # Reset streak if more than 1 day has passed
+                    user_profile.streak_days = 1
+            else:
+                user_profile.streak_days = 1
+                
+            user_profile.last_workout_date = today
+            user_profile.save()
+            
+            # Check for badge awards
+            user_profile.check_and_award_badges()
+            
             # Update leaderboard data
             today = timezone.now().date()
             week_start = today - timedelta(days=today.weekday())
-            user_profile = UserProfile.objects.get(user=request.user)
             
             logger.info(f"Updating leaderboard for week of {week_start}")
             
@@ -143,21 +169,24 @@ def log_workout(request):
                 logger.info(f"Updated leaderboard entry for {user.username}: rank {rank}, score {score}")
             
             messages.success(request, 'Workout logged successfully!')
-            return redirect('workouts.index')
+            return redirect(return_to)
     else:
         form = WorkoutForm()
     
-    return render(request, 'workouts/log_workout.html', {'form': form})
+    return render(request, 'workouts/log_workout.html', {'form': form, 'return_to': return_to})
 
 @login_required
 def set_goal(request):
+    # Get the return_to parameter, default to workouts.index
+    return_to = request.GET.get('return_to', 'workouts.index')
+    
     # Check if user has reached the goal limit
     current_goals = WorkoutGoal.objects.filter(user=request.user).count()
     max_goals = 3
     
     if current_goals >= max_goals and request.method == 'GET':
         messages.warning(request, f'You can only have {max_goals} goals at a time. Please delete some goals before adding new ones.')
-        return redirect('workouts.index')
+        return redirect(return_to)
     
     if request.method == 'POST':
         form = WorkoutGoalForm(request.POST)
@@ -166,14 +195,15 @@ def set_goal(request):
             goal.user = request.user
             goal.save()
             messages.success(request, 'Goal added successfully!')
-            return redirect('workouts.index')
+            return redirect(return_to)
     else:
         form = WorkoutGoalForm()
     
     return render(request, 'workouts/set_goal.html', {
         'form': form,
         'current_goals': current_goals,
-        'max_goals': max_goals
+        'max_goals': max_goals,
+        'return_to': return_to
     })
 
 @login_required

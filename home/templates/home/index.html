@@ -25,8 +25,8 @@
               <div class="quote-author">— {{ quote.author }}</div>
             </div>
             <div class="mt-4 animate-fade-in-delay-3">
-              <a href="{% url 'workouts.log_workout' %}" class="btn btn-light btn-lg me-2">Log Workout</a>
-              <a href="{% url 'workouts.set_goal' %}" class="btn btn-outline-light btn-lg">Set Goal</a>
+              <a href="{{ log_workout_url }}" class="btn btn-light btn-lg me-2">Log Workout</a>
+              <a href="{{ set_goal_url }}" class="btn btn-outline-light btn-lg">Set Goal</a>
             </div>
           </div>
         </div>
@@ -120,7 +120,7 @@
               <div class="empty-state">
                 <img src="{% static 'img/goals-empty.svg' %}" alt="No Goals" class="empty-state-img" onerror="this.src='https://via.placeholder.com/120x120?text=Set+Goals'">
                 <p>You don't have any active goals yet.</p>
-                <a href="{% url 'workouts.set_goal' %}" class="btn btn-custom-gradient mt-2">Set Your First Goal</a>
+                <a href="{{ set_goal_url }}" class="btn btn-custom-gradient mt-2">Set Your First Goal</a>
               </div>
             {% endif %}
           </div>
@@ -169,7 +169,7 @@
               <div class="empty-state">
                 <img src="{% static 'img/workout-empty.svg' %}" alt="No Workouts" class="empty-state-img" onerror="this.src='https://via.placeholder.com/120x120?text=Workouts'">
                 <p>You haven't logged any workouts yet.</p>
-                <a href="{% url 'workouts.log_workout' %}" class="btn btn-custom-gradient mt-2">Log Your First Workout</a>
+                <a href="{{ log_workout_url }}" class="btn btn-custom-gradient mt-2">Log Your First Workout</a>
               </div>
             {% endif %}
           </div>
@@ -208,7 +208,7 @@
               <div class="empty-state">
                 <img src="{% static 'img/achievements-empty.svg' %}" alt="No Achievements" class="empty-state-img" onerror="this.src='https://via.placeholder.com/120x120?text=Achievements'">
                 <p>Complete workouts to earn achievements!</p>
-                <a href="{% url 'workouts.log_workout' %}" class="btn btn-custom-gradient mt-2">Log a Workout</a>
+                <a href="{{ log_workout_url }}" class="btn btn-custom-gradient mt-2">Log a Workout</a>
               </div>
             {% endif %}
           </div>

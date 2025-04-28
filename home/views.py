@@ -5,6 +5,8 @@ from user.models import UserBadge
 from social.models import Post, UserConnection
 import random
 from datetime import datetime, timedelta
+from django.db.models import Count, Sum
+from django.urls import reverse
 
 # List of motivational fitness quotes
 MOTIVATIONAL_QUOTES = [
@@ -25,6 +27,20 @@ def index(request):
     # Get user data for personalization
     user = request.user
     user_profile = user.profile
+    
+    # Calculate workout statistics
+    workout_stats = Workout.objects.filter(user=user).aggregate(
+        total_workouts=Count('id'),
+        total_calories=Sum('calories_burned'),
+        total_minutes=Sum('duration')
+    )
+    
+    # Update profile with calculated statistics
+    user_profile.workouts_completed = workout_stats['total_workouts'] or 0
+    user_profile.calories_burned = workout_stats['total_calories'] or 0
+    user_profile.active_minutes = workout_stats['total_minutes'] or 0
+    user_profile.save()
+    
     fitness_level = user_profile.get_fitness_level_display()
     
     # Get current date info for greeting
@@ -72,6 +88,10 @@ def index(request):
             'author', 'author__profile'
         ).order_by('-created_at')[:5]
     
+    # Create URLs with proper return_to parameters
+    log_workout_url = f"{reverse('workouts.log_workout')}?return_to=home.index"
+    set_goal_url = f"{reverse('workouts.set_goal')}?return_to=home.index"
+    
     context = {
         'user': user,
         'profile': user_profile,
@@ -83,6 +103,8 @@ def index(request):
         'goals': goals,
         'achievements': achievements,
         'posts': posts,
+        'log_workout_url': log_workout_url,
+        'set_goal_url': set_goal_url,
     }
     
     return render(request, 'home/index.html', context)

@@ -5,9 +5,9 @@ from django.utils import timezone
 class WorkoutStat(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='workout_stats')
     date = models.DateField(default=timezone.now)
-    duration = models.IntegerField(help_text="Duration in minutes")
-    calories_burned = models.IntegerField()
-    workout_type = models.CharField(max_length=50)
+    duration = models.IntegerField(help_text="Duration in minutes", null=True, blank=True, default=0)
+    calories_burned = models.IntegerField(null=True, blank=True, default=0)
+    workout_type = models.CharField(max_length=50, null=True, blank=True, default='General')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

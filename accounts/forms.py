@@ -24,6 +24,18 @@ class CustomUserCreationForm(UserCreationForm):
             )
 
 class ProfileSetupForm(forms.ModelForm):
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        error_messages={'required': 'Please enter your first name'}
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        error_messages={'required': 'Please enter your last name'}
+    )
     goal_type = forms.ChoiceField(
         choices=[
             ('weight_loss', 'Weight Loss'),
@@ -50,11 +62,11 @@ class ProfileSetupForm(forms.ModelForm):
         fields = ['bio', 'location', 'fitness_level', 'profile_pic']
         widgets = {
             'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'location': forms.Select(attrs={'class': 'form-control'}),
             'fitness_level': forms.Select(attrs={'class': 'form-control'}),
             'profile_pic': forms.FileInput(attrs={'class': 'form-control'})
         }
         error_messages = {
-            'location': {'required': 'Please enter your location'},
+            'location': {'required': 'Please select your location'},
             'fitness_level': {'required': 'Please select your fitness level'}
         }

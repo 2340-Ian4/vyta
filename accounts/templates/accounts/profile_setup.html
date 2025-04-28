@@ -5,47 +5,98 @@
 <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center" style="background-color: #F8F9FA;">
   <div class="row justify-content-center w-100">
     <div class="col-md-8 col-lg-6">
-      <div class="p-4" style="background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        <h2 class="text-center mb-4" style="color: #00CED1;">Complete Your Profile</h2>
+      <div class="p-4" style="background-color: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">
+        <h2 class="text-center mb-4" style="background: linear-gradient(45deg, #00CED1, #FF1493); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Complete Your Profile</h2>
         {% if template_data.error %}
         <div class="alert alert-danger" role="alert">
+          <i class="fas fa-exclamation-circle me-2"></i>
           {{ template_data.error }}
         </div>
         {% endif %}
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data" id="profileSetupForm">
           {% csrf_token %}
           
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="id_first_name" class="form-label" style="color: #00CED1;">First Name <span class="text-danger">*</span></label>
+              <input type="text" name="first_name" id="id_first_name" class="form-control {% if template_data.form_errors.first_name %}is-invalid{% endif %}" value="{{ form.first_name.value|default:'' }}" required style="border-color: #FF8C00;">
+              {% if template_data.form_errors.first_name %}
+              <div class="invalid-feedback">
+                <i class="fas fa-exclamation-circle me-1"></i>
+                {{ template_data.form_errors.first_name.0 }}
+              </div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="id_last_name" class="form-label" style="color: #00CED1;">Last Name <span class="text-danger">*</span></label>
+              <input type="text" name="last_name" id="id_last_name" class="form-control {% if template_data.form_errors.last_name %}is-invalid{% endif %}" value="{{ form.last_name.value|default:'' }}" required style="border-color: #FF8C00;">
+              {% if template_data.form_errors.last_name %}
+              <div class="invalid-feedback">
+                <i class="fas fa-exclamation-circle me-1"></i>
+                {{ template_data.form_errors.last_name.0 }}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
           <div class="mb-3">
             <label for="id_bio" class="form-label" style="color: #00CED1;">Bio (Optional)</label>
-            <textarea name="bio" id="id_bio" class="form-control" rows="3" style="border-color: #FF8C00;">{{ form.bio.value|default:'' }}</textarea>
+            <textarea name="bio" id="id_bio" class="form-control {% if template_data.form_errors.bio %}is-invalid{% endif %}" rows="3" style="border-color: #FF8C00;">{{ form.bio.value|default:'' }}</textarea>
+            {% if template_data.form_errors.bio %}
+            <div class="invalid-feedback">
+              <i class="fas fa-exclamation-circle me-1"></i>
+              {{ template_data.form_errors.bio.0 }}
+            </div>
+            {% endif %}
           </div>
 
           <div class="mb-3">
-            <label for="id_location" class="form-label" style="color: #00CED1;">Location</label>
-            <input type="text" name="location" id="id_location" class="form-control" value="{{ form.location.value|default:'' }}" style="border-color: #FF8C00;">
+            <label for="id_location" class="form-label" style="color: #00CED1;">Location <span class="text-danger">*</span></label>
+            <select name="location" id="id_location" class="form-control {% if template_data.form_errors.location %}is-invalid{% endif %}" required style="border-color: #FF8C00;">
+              <option value="">Select your city</option>
+              <!-- US Cities will be populated via JavaScript -->
+            </select>
+            {% if template_data.form_errors.location %}
+            <div class="invalid-feedback">
+              <i class="fas fa-exclamation-circle me-1"></i>
+              {{ template_data.form_errors.location.0 }}
+            </div>
+            {% endif %}
           </div>
 
           <div class="mb-3">
-            <label for="id_fitness_level" class="form-label" style="color: #00CED1;">Fitness Level</label>
-            <select name="fitness_level" id="id_fitness_level" class="form-control" style="border-color: #FF8C00;">
+            <label for="id_fitness_level" class="form-label" style="color: #00CED1;">Fitness Level <span class="text-danger">*</span></label>
+            <select name="fitness_level" id="id_fitness_level" class="form-control {% if template_data.form_errors.fitness_level %}is-invalid{% endif %}" required style="border-color: #FF8C00;">
               <option value="">Select your fitness level</option>
               <option value="beginner" {% if form.fitness_level.value == 'beginner' %}selected{% endif %}>Beginner</option>
               <option value="intermediate" {% if form.fitness_level.value == 'intermediate' %}selected{% endif %}>Intermediate</option>
               <option value="advanced" {% if form.fitness_level.value == 'advanced' %}selected{% endif %}>Advanced</option>
             </select>
+            {% if template_data.form_errors.fitness_level %}
+            <div class="invalid-feedback">
+              <i class="fas fa-exclamation-circle me-1"></i>
+              {{ template_data.form_errors.fitness_level.0 }}
+            </div>
+            {% endif %}
           </div>
 
           <div class="mb-3">
             <label for="id_profile_pic" class="form-label" style="color: #00CED1;">Profile Picture (Optional)</label>
-            <input type="file" name="profile_pic" id="id_profile_pic" class="form-control" style="border-color: #FF8C00;">
+            <input type="file" name="profile_pic" id="id_profile_pic" class="form-control {% if template_data.form_errors.profile_pic %}is-invalid{% endif %}" style="border-color: #FF8C00;">
+            {% if template_data.form_errors.profile_pic %}
+            <div class="invalid-feedback">
+              <i class="fas fa-exclamation-circle me-1"></i>
+              {{ template_data.form_errors.profile_pic.0 }}
+            </div>
+            {% endif %}
           </div>
 
           <hr class="my-4" style="border-color: #FF8C00;">
-          <h4 class="mb-3" style="color: #00CED1;">Set Your First Goal</h4>
+          <h4 class="mb-3" style="background: linear-gradient(45deg, #00CED1, #FF1493); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Set Your First Goal</h4>
 
           <div class="mb-3">
-            <label for="id_goal_type" class="form-label" style="color: #00CED1;">Goal Type</label>
-            <select name="goal_type" id="id_goal_type" class="form-control" style="border-color: #FF8C00;">
+            <label for="id_goal_type" class="form-label" style="color: #00CED1;">Goal Type <span class="text-danger">*</span></label>
+            <select name="goal_type" id="id_goal_type" class="form-control {% if template_data.form_errors.goal_type %}is-invalid{% endif %}" required style="border-color: #FF8C00;">
               <option value="">Select your goal type</option>
               <option value="weight_loss" {% if form.goal_type.value == 'weight_loss' %}selected{% endif %}>Weight Loss</option>
               <option value="muscle_gain" {% if form.goal_type.value == 'muscle_gain' %}selected{% endif %}>Muscle Gain</option>
@@ -53,16 +104,34 @@
               <option value="flexibility" {% if form.goal_type.value == 'flexibility' %}selected{% endif %}>Flexibility</option>
               <option value="general_fitness" {% if form.goal_type.value == 'general_fitness' %}selected{% endif %}>General Fitness</option>
             </select>
+            {% if template_data.form_errors.goal_type %}
+            <div class="invalid-feedback">
+              <i class="fas fa-exclamation-circle me-1"></i>
+              {{ template_data.form_errors.goal_type.0 }}
+            </div>
+            {% endif %}
           </div>
 
           <div class="mb-3">
-            <label for="id_target" class="form-label" style="color: #00CED1;">Target</label>
-            <input type="text" name="target" id="id_target" class="form-control" value="{{ form.target.value|default:'' }}" placeholder="e.g., Lose 10 pounds, Run 5 miles, etc." style="border-color: #FF8C00;">
+            <label for="id_target" class="form-label" style="color: #00CED1;">Target <span class="text-danger">*</span></label>
+            <input type="text" name="target" id="id_target" class="form-control {% if template_data.form_errors.target %}is-invalid{% endif %}" value="{{ form.target.value|default:'' }}" placeholder="e.g., Lose 10 pounds, Run 5 miles, etc." required style="border-color: #FF8C00;">
+            {% if template_data.form_errors.target %}
+            <div class="invalid-feedback">
+              <i class="fas fa-exclamation-circle me-1"></i>
+              {{ template_data.form_errors.target.0 }}
+            </div>
+            {% endif %}
           </div>
 
           <div class="mb-3">
             <label for="id_end_date" class="form-label" style="color: #00CED1;">End Date (Optional)</label>
-            <input type="date" name="end_date" id="id_end_date" class="form-control" value="{{ form.end_date.value|default:'' }}" style="border-color: #FF8C00;">
+            <input type="date" name="end_date" id="id_end_date" class="form-control {% if template_data.form_errors.end_date %}is-invalid{% endif %}" value="{{ form.end_date.value|default:'' }}" min="{{ today_date }}" style="border-color: #FF8C00;">
+            {% if template_data.form_errors.end_date %}
+            <div class="invalid-feedback">
+              <i class="fas fa-exclamation-circle me-1"></i>
+              {{ template_data.form_errors.end_date.0 }}
+            </div>
+            {% endif %}
           </div>
 
           <div class="text-center">
@@ -73,4 +142,50 @@
     </div>
   </div>
 </div>
+
+{% block extra_js %}
+<script>
+// US Cities data
+const usCities = [
+  "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Phoenix, AZ",
+  "Philadelphia, PA", "San Antonio, TX", "San Diego, CA", "Dallas, TX", "San Jose, CA",
+  "Austin, TX", "Jacksonville, FL", "Fort Worth, TX", "Columbus, OH", "San Francisco, CA",
+  "Charlotte, NC", "Indianapolis, IN", "Seattle, WA", "Denver, CO", "Washington, DC",
+  "Boston, MA", "El Paso, TX", "Nashville, TN", "Detroit, MI", "Portland, OR",
+  "Las Vegas, NV", "Oklahoma City, OK", "Memphis, TN", "Louisville, KY", "Baltimore, MD",
+  "Milwaukee, WI", "Albuquerque, NM", "Tucson, AZ", "Fresno, CA", "Sacramento, CA",
+  "Long Beach, CA", "Kansas City, MO", "Mesa, AZ", "Atlanta, GA", "Colorado Springs, CO",
+  "Miami, FL", "Raleigh, NC", "Omaha, NE", "Minneapolis, MN", "Tulsa, OK",
+  "Cleveland, OH", "Wichita, KS", "Arlington, TX", "New Orleans, LA", "Bakersfield, CA"
+];
+
+// Populate cities dropdown
+const locationSelect = document.getElementById('id_location');
+usCities.sort().forEach(city => {
+  const option = document.createElement('option');
+  option.value = city;
+  option.textContent = city;
+  locationSelect.appendChild(option);
+});
+
+// Set minimum date for end_date to today
+const endDateInput = document.getElementById('id_end_date');
+const today = new Date().toISOString().split('T')[0];
+endDateInput.min = today;
+
+// Focus on first invalid field and show error message
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('profileSetupForm');
+  const invalidFields = form.querySelectorAll('.is-invalid');
+  
+  if (invalidFields.length > 0) {
+    // Focus on the first invalid field
+    invalidFields[0].focus();
+    
+    // Scroll to the first invalid field
+    invalidFields[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+});
+</script>
+{% endblock %}
 {% endblock %} 

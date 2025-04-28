@@ -7,6 +7,7 @@ from user.models import UserProfile
 from django.contrib.auth.models import User
 from workouts.models import WorkoutGoal
 from django.contrib import messages
+from django.utils import timezone
 
 # Create your views here.
 
@@ -75,6 +76,7 @@ def signup(request):
 def profile_setup(request):
     template_data = {}
     template_data['title'] = 'Complete Your Profile'
+    template_data['today_date'] = timezone.now().date().isoformat()
     
     # Get or create the user's profile
     profile, created = UserProfile.objects.get_or_create(user=request.user)
@@ -86,6 +88,12 @@ def profile_setup(request):
     elif request.method == 'POST':
         form = ProfileSetupForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
+            # Update user's first and last name
+            user = request.user
+            user.first_name = form.cleaned_data['first_name']
+            user.last_name = form.cleaned_data['last_name']
+            user.save()
+            
             # Save the profile
             profile = form.save(commit=False)
             profile.is_profile_complete = True
@@ -102,10 +110,15 @@ def profile_setup(request):
             
             return redirect('home.index')
         else:
-            # Get the first error message
-            first_error = next(iter(form.errors.values()))[0]
-            template_data['error'] = first_error
+            # Get all error messages
+            error_messages = []
+            for field, errors in form.errors.items():
+                for error in errors:
+                    error_messages.append(f"{form.fields[field].label}: {error}")
+            
+            template_data['error'] = error_messages[0] if error_messages else "Please correct the errors below."
             template_data['form'] = form
+            template_data['form_errors'] = form.errors
             return render(request, 'accounts/profile_setup.html',
                 {'template_data': template_data})
         

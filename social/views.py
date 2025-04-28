@@ -136,40 +136,22 @@ def feed(request):
     # Get all users except current user for suggestions
     all_users = User.objects.exclude(id=request.user.id).select_related('profile')
     
-    # If user isn't following anyone, show posts from all users and suggest users to follow
-    if not following.exists():
-        posts = Post.objects.filter(
-            is_hidden=False
-        ).select_related(
-            'author',
-            'author__profile'
-        ).prefetch_related(
-            'likes',
-            'comments',
-            'comments__user',
-            'comments__user__profile'
-        ).order_by('-created_at')[:10]  # Limit to 10 most recent posts
-        
-        # Show suggested users to follow
-        suggested_users = all_users[:5]
-        show_suggestions = True
-    else:
-        # Get recent posts from followed users and current user
-        posts = Post.objects.filter(
-            models.Q(author__in=following) | models.Q(author=request.user),
-            is_hidden=False
-        ).select_related(
-            'author',
-            'author__profile'
-        ).prefetch_related(
-            'likes',
-            'comments',
-            'comments__user',
-            'comments__user__profile'
-        ).order_by('-created_at')
-        
-        suggested_users = None
-        show_suggestions = False
+    # Get recent posts from followed users and current user
+    posts = Post.objects.filter(
+        models.Q(author__in=following) | models.Q(author=request.user),
+        is_hidden=False
+    ).select_related(
+        'author',
+        'author__profile'
+    ).prefetch_related(
+        'likes',
+        'comments',
+        'comments__user',
+        'comments__user__profile'
+    ).order_by('-created_at')
+    
+    # Get suggested users (users not followed)
+    suggested_users = all_users.exclude(id__in=following)[:3]
     
     # Set current user on each post for like checking
     for post in posts:
@@ -178,7 +160,7 @@ def feed(request):
     return render(request, 'social/feed.html', {
         'posts': posts,
         'suggested_users': suggested_users,
-        'show_suggestions': show_suggestions,
+        'show_suggestions': True,  # Always show suggestions
     })
 
 @login_required
@@ -322,15 +304,70 @@ def follow_user(request, user_id):
 
 @login_required
 def search_users(request):
-    """Search for users by username"""
+    """Search for users"""
     query = request.GET.get('q', '')
     if query:
-        users = User.objects.filter(username__icontains=query).exclude(id=request.user.id)
-    else:
-        # Show all users instead of an empty queryset when no query is provided
-        users = User.objects.exclude(id=request.user.id)
+        users = User.objects.filter(
+            username__icontains=query
+        ).exclude(
+            id=request.user.id
+        ).select_related('profile')[:5]
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Return JSON for AJAX requests
+            results = [{
+                'id': user.id,
+                'username': user.username,
+                'profile_pic': user.profile.profile_pic.url if user.profile.profile_pic else None,
+                'is_following': UserConnection.objects.filter(
+                    follower=request.user,
+                    following=user
+                ).exists()
+            } for user in users]
+            return JsonResponse({'results': results})
+        
+        # For regular requests, return the full page
+        return render(request, 'social/search_results.html', {
+            'search_results': users,
+            'query': query
+        })
     
-    return render(request, 'social/search_results.html', {
-        'search_results': users,
+    return JsonResponse({'results': []})
+
+@login_required
+def discover_users(request):
+    """View for discovering users to follow"""
+    # Get users that the current user follows
+    following = UserConnection.objects.filter(follower=request.user).values_list('following', flat=True)
+    
+    # Get all users except current user and those already followed
+    users = User.objects.exclude(
+        id__in=following
+    ).exclude(
+        id=request.user.id
+    ).select_related('profile')
+    
+    # Get workout stats for all users in one query
+    workout_stats = Workout.objects.filter(
+        user__in=users
+    ).values('user').annotate(
+        total_workouts=Count('id'),
+        total_calories=Sum('calories_burned'),
+        total_minutes=Sum('duration')
+    )
+    
+    # Create a dictionary of stats by user ID
+    stats_dict = {stat['user']: stat for stat in workout_stats}
+    
+    # Attach stats to each user
+    for user in users:
+        user.stats = stats_dict.get(user.id, {
+            'total_workouts': 0,
+            'total_calories': 0,
+            'total_minutes': 0
+        })
+    
+    return render(request, 'social/discover_users.html', {
+        'users': users,
     })
 

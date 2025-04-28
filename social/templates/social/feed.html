@@ -27,23 +27,7 @@
             </div>
 
             <div id="searchResults">
-                {% if search_results %}
-                <div class="search-results">
-                    <h6 class="text-gradient mb-3">Search Results</h6>
-                    {% for user in search_results %}
-                    <div class="d-flex align-items-center mb-3">
-                        <img src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
-                             alt="{{ user.username }}'s Profile Picture" 
-                             class="rounded-circle me-2" 
-                             style="width: 40px; height: 40px; object-fit: cover;">
-                        <div>
-                            <h6 class="mb-0">{{ user.username }}</h6>
-                            <a href="{% url 'social.follow_user' user.id %}" class="btn btn-sm btn-custom-gradient">Follow</a>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
+                <!-- Search results will be populated here -->
             </div>
         </div>
 
@@ -55,12 +39,12 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="text-gradient mb-0">Suggested Users to Follow</h5>
-                        <a href="{% url 'social.search_users' %}" class="btn btn-custom-gradient">Find More</a>
+                        <a href="{% url 'social.discover_users' %}" class="btn btn-custom-gradient">Find More</a>
                     </div>
-                    <div class="row">
+                    <div class="row justify-content-center">
                         {% for user in suggested_users %}
                         <div class="col-md-4 mb-3">
-                            <div class="d-flex align-items-center">
+                            <div class="d-flex align-items-center justify-content-center">
                                 <img src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
                                      alt="{{ user.username }}'s Profile Picture" 
                                      class="rounded-circle me-2" 
@@ -80,8 +64,8 @@
             <!-- Empty State -->
             {% if not posts %}
             <div class="text-center py-5">
-                <h3 class="text-gradient">No Posts Yet</h3>
-                <p class="text-muted">Be the first to share something!</p>
+                <h3 class="text-gradient">No Posts To See Yet</h3>
+                <p class="text-muted">Follow other users to the their posts! Or</p>
                 <button type="button" class="btn btn-custom-gradient" data-bs-toggle="modal" data-bs-target="#createPostModal">
                     Create Your First Post
                 </button>
@@ -389,16 +373,65 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle search form submission
     const searchForm = document.getElementById('searchForm');
     const searchResults = document.getElementById('searchResults');
-    
+    let searchTimeout;
+
     searchForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        const formData = new FormData(this);
+        const query = this.querySelector('input[name="q"]').value;
         
-        fetch(this.action + '?' + new URLSearchParams(formData))
-            .then(response => response.text())
-            .then(html => {
-                searchResults.innerHTML = html;
+        // Clear previous timeout
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+
+        // Set new timeout for debouncing
+        searchTimeout = setTimeout(() => {
+            fetch(`{% url 'social.search_users' %}?q=${encodeURIComponent(query)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.results.length > 0) {
+                    searchResults.innerHTML = `
+                        <div class="search-results">
+                            <h6 class="text-gradient mb-3">Search Results</h6>
+                            ${data.results.map(user => `
+                                <div class="d-flex align-items-center mb-3">
+                                    <img src="${user.profile_pic || '{% static "img/default-profile.png" %}'}" 
+                                         alt="${user.username}'s Profile Picture" 
+                                         class="rounded-circle me-2" 
+                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                    <div>
+                                        <h6 class="mb-0">${user.username}</h6>
+                                        <a href="/social/follow/${user.id}/" class="btn btn-sm btn-custom-gradient">
+                                            ${user.is_following ? 'Unfollow' : 'Follow'}
+                                        </a>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    searchResults.innerHTML = `
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No users found matching "${query}"
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                searchResults.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Error searching for users. Please try again.
+                    </div>
+                `;
             });
+        }, 300); // 300ms debounce
     });
 });
 </script>

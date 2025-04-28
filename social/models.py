@@ -5,8 +5,8 @@ from django.db.models import Count
 
 class UserConnection(models.Model):
     """Model for tracking user relationships (following/friends)"""
-    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
-    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='connections_as_follower')
+    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='connections_as_following')
     is_friend = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

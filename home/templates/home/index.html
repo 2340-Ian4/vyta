@@ -1,20 +1,1184 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
-<header class="masthead bg-index text-white text-center
-           py-4">
-  <div class="container d-flex align-items-center flex-
-  column pt-2">
-    <h2>Fit Jacket</h2>
-    <p>Get Big Stay Hard!</p>
+<div class="home-container">
+  <!-- Hero Section with User Welcome -->
+  <div class="hero-section">
+    <div class="container py-5">
+      <div class="row align-items-center">
+        <div class="col-md-7">
+          <div class="welcome-content">
+            <h1 class="display-4 fw-bold text-white animate-fade-in">{{ greeting }}, {{ user.first_name|default:user.username }}!</h1>
+            <p class="lead text-white animate-fade-in-delay">
+              {% if days_since_workout == 0 %}
+                You've already worked out today. Great job keeping up your streak!
+              {% elif days_since_workout == 1 %}
+                It's been 1 day since your last workout. Time to keep that streak going!
+              {% elif days_since_workout > 1 %}
+                It's been {{ days_since_workout }} days since your last workout. Let's get moving today!
+              {% else %}
+                Welcome to your fitness dashboard. Ready to start your journey?
+              {% endif %}
+            </p>
+            <div class="quote-card animate-fade-in-delay-2">
+              <div class="quote-text">"{{ quote.text }}"</div>
+              <div class="quote-author">— {{ quote.author }}</div>
+            </div>
+            <div class="mt-4 animate-fade-in-delay-3">
+              <a href="{% url 'workouts.log_workout' %}" class="btn btn-light btn-lg me-2">Log Workout</a>
+              <a href="{% url 'workouts.set_goal' %}" class="btn btn-outline-light btn-lg">Set Goal</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-5 d-none d-md-block">
+          <img src="{% static 'img/fitness-hero.png' %}" alt="Fitness" class="img-fluid rounded hero-image animate-slide-up" onerror="this.src='https://via.placeholder.com/500x400?text=Fitness+Journey'">
+        </div>
+      </div>
+    </div>
   </div>
-</header>
-<div class="p-3">
-  <div class="container">
-    <div class="row mt-3">
-      <div class="col mx-auto text-center mb-3">
-        <h4>Welcome to the best movie store!!</h4>
+
+  <div class="container main-content mt-n5">
+    <!-- User Stats Overview Card -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="stats-overview-card">
+          <div class="row g-0">
+            <div class="col-md-3 stats-card-section">
+              <div class="stats-icon-container">
+                <i class="fas fa-dumbbell"></i>
+              </div>
+              <div class="stats-data">
+                <h3>{{ profile.workouts_completed|default:"0" }}</h3>
+                <p>Workouts</p>
+              </div>
+            </div>
+            <div class="col-md-3 stats-card-section">
+              <div class="stats-icon-container">
+                <i class="fas fa-fire"></i>
+              </div>
+              <div class="stats-data">
+                <h3>{{ profile.calories_burned|default:"0" }}</h3>
+                <p>Calories</p>
+              </div>
+            </div>
+            <div class="col-md-3 stats-card-section">
+              <div class="stats-icon-container">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div class="stats-data">
+                <h3>{{ profile.active_minutes|default:"0" }}</h3>
+                <p>Minutes</p>
+              </div>
+            </div>
+            <div class="col-md-3 stats-card-section">
+              <div class="stats-icon-container">
+                <i class="fas fa-calendar-check"></i>
+              </div>
+              <div class="stats-data">
+                <h3>{{ profile.streak_days|default:"0" }}</h3>
+                <p>Day Streak</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Goals and Recent Workouts Row -->
+    <div class="row">
+      <!-- Active Goals Card -->
+      <div class="col-md-6 mb-4">
+        <div class="card dashboard-card h-100">
+          <div class="card-header">
+            <h4><i class="fas fa-bullseye me-2"></i>Active Goals</h4>
+          </div>
+          <div class="card-body">
+            {% if goals %}
+              <div class="goals-container">
+                {% for goal in goals %}
+                  <div class="goal-item">
+                    <div class="goal-header">
+                      <h5>{{ goal.get_goal_type_display }}</h5>
+                      <span class="goal-target">{{ goal.target }}</span>
+                    </div>
+                    <div class="goal-progress-container">
+                      <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ goal.progress }}%" aria-valuenow="{{ goal.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                      </div>
+                      <span class="progress-text">{{ goal.progress }}% Complete</span>
+                    </div>
+                    <div class="goal-dates">
+                      <span class="start-date">Started: {{ goal.start_date|date:"M d, Y" }}</span>
+                      {% if goal.end_date %}
+                        <span class="end-date">Target: {{ goal.end_date|date:"M d, Y" }}</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="empty-state">
+                <img src="{% static 'img/goals-empty.svg' %}" alt="No Goals" class="empty-state-img" onerror="this.src='https://via.placeholder.com/120x120?text=Set+Goals'">
+                <p>You don't have any active goals yet.</p>
+                <a href="{% url 'workouts.set_goal' %}" class="btn btn-custom-gradient mt-2">Set Your First Goal</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recent Workouts Card -->
+      <div class="col-md-6 mb-4">
+        <div class="card dashboard-card h-100">
+          <div class="card-header">
+            <h4><i class="fas fa-history me-2"></i>Recent Workouts</h4>
+          </div>
+          <div class="card-body">
+            {% if workouts %}
+              <div class="recent-workouts-list">
+                {% for workout in workouts|slice:":4" %}
+                  <div class="workout-card">
+                    <div class="workout-icon-badge 
+                      {% if 'cardio' in workout.name|lower %}cardio-icon
+                      {% elif 'strength' in workout.name|lower %}strength-icon
+                      {% elif 'yoga' in workout.name|lower %}yoga-icon
+                      {% else %}general-icon{% endif %}">
+                      <i class="fas 
+                        {% if 'cardio' in workout.name|lower %}fa-running
+                        {% elif 'strength' in workout.name|lower %}fa-dumbbell
+                        {% elif 'yoga' in workout.name|lower %}fa-walking
+                        {% else %}fa-dumbbell{% endif %}"></i>
+                    </div>
+                    <div class="workout-details">
+                      <h6 class="workout-name">{{ workout.name }}</h6>
+                      <div class="workout-stats">
+                        <span><i class="fas fa-clock"></i> {{ workout.duration }} min</span>
+                        <span><i class="fas fa-fire"></i> {{ workout.calories_burned }} cal</span>
+                      </div>
+                      <div class="workout-date">
+                        {{ workout.date|date:"M d, Y - g:i A" }}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+                <div class="text-center mt-3">
+                  <a href="{% url 'workouts.history' %}" class="btn btn-custom-gradient-outline btn-sm">View All Workouts</a>
+                </div>
+              </div>
+            {% else %}
+              <div class="empty-state">
+                <img src="{% static 'img/workout-empty.svg' %}" alt="No Workouts" class="empty-state-img" onerror="this.src='https://via.placeholder.com/120x120?text=Workouts'">
+                <p>You haven't logged any workouts yet.</p>
+                <a href="{% url 'workouts.log_workout' %}" class="btn btn-custom-gradient mt-2">Log Your First Workout</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Achievements and Social Feed Row -->
+    <div class="row">
+      <!-- Achievements Card -->
+      <div class="col-md-6 mb-4">
+        <div class="card dashboard-card h-100">
+          <div class="card-header">
+            <h4><i class="fas fa-medal me-2"></i>Achievements</h4>
+          </div>
+          <div class="card-body">
+            {% if achievements %}
+              <div class="achievement-grid">
+                {% for achievement in achievements %}
+                  <div class="achievement-badge">
+                    <div class="badge-icon">
+                      <i class="fas fa-medal"></i>
+                    </div>
+                    <div class="badge-content">
+                      <h6>{{ achievement.badge.name }}</h6>
+                      <p>{{ achievement.badge.description }}</p>
+                      <small>Earned {{ achievement.earned_at|date:"M d, Y" }}</small>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="text-center mt-3">
+                <a href="{% url 'achievements.index' %}" class="btn btn-custom-gradient-outline btn-sm">View All Achievements</a>
+              </div>
+            {% else %}
+              <div class="empty-state">
+                <img src="{% static 'img/achievements-empty.svg' %}" alt="No Achievements" class="empty-state-img" onerror="this.src='https://via.placeholder.com/120x120?text=Achievements'">
+                <p>Complete workouts to earn achievements!</p>
+                <a href="{% url 'workouts.log_workout' %}" class="btn btn-custom-gradient mt-2">Log a Workout</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recent Workouts Card -->
+      <div class="col-md-6 mb-4">
+        <div class="card dashboard-card h-100">
+          <div class="card-header">
+            <h4><i class="fas fa-users me-2"></i>Social Feed</h4>
+          </div>
+          <div class="card-body">
+            {% if posts %}
+              <div class="social-feed-preview">
+                {% for post in posts|slice:":3" %}
+                  <div class="feed-card">
+                    <div class="feed-user-info">
+                      <img src="{% if post.author.profile.profile_pic %}{{ post.author.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                           alt="{{ post.author.username }}" class="user-avatar">
+                      <div class="user-details">
+                        <h6>{{ post.author.username }}</h6>
+                        <span class="post-time">{{ post.created_at|date:"M d, g:i A" }}</span>
+                      </div>
+                    </div>
+                    <div class="feed-content">
+                      {{ post.content|truncatechars:120 }}
+                    </div>
+                    <div class="feed-actions">
+                      <span><i class="far fa-heart"></i> {{ post.likes.count }}</span>
+                      <span><i class="far fa-comment"></i> {{ post.comments.count }}</span>
+                    </div>
+                  </div>
+                {% endfor %}
+                <div class="text-center mt-3">
+                  <a href="{% url 'social.feed' %}" class="btn btn-custom-gradient-outline btn-sm">View Full Feed</a>
+                </div>
+              </div>
+            {% else %}
+              <div class="empty-state">
+                <img src="{% static 'img/social-empty.svg' %}" alt="No Posts" class="empty-state-img" onerror="this.src='https://via.placeholder.com/120x120?text=Social'">
+                <p>Follow other users to see their posts in your feed!</p>
+                <a href="{% url 'social.search_users' %}" class="btn btn-custom-gradient mt-2">Find Users</a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Suggested Workouts Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card dashboard-card">
+        <div class="card-header">
+          <h4><i class="fas fa-bolt me-2"></i>Suggested Workouts</h4>
+        </div>
+        <div class="card-body px-4 py-4">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <div class="workout-suggestion-card">
+                <div class="workout-suggestion-header">
+                  <h5>Full Body Workout</h5>
+                  <span class="workout-level">{{ fitness_level }}</span>
+                </div>
+                <div class="workout-suggestion-body">
+                  <div class="workout-specs">
+                    <div><i class="fas fa-clock"></i> 30 min</div>
+                    <div><i class="fas fa-fire"></i> 150 cal</div>
+                  </div>
+                  <p>A 30-minute full-body workout focusing on strength and endurance.</p>
+                  <button class="btn btn-custom-gradient w-100 start-workout-btn" 
+                          data-workout-name="Full Body Workout"
+                          data-workout-description="A 30-minute full-body workout focusing on strength and endurance."
+                          data-workout-duration="30"
+                          data-workout-calories="150"
+                          data-workout-notes="">Start Workout</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="workout-suggestion-card">
+                <div class="workout-suggestion-header">
+                  <h5>Cardio Blast</h5>
+                  <span class="workout-level">{{ fitness_level }}</span>
+                </div>
+                <div class="workout-suggestion-body">
+                  <div class="workout-specs">
+                    <div><i class="fas fa-clock"></i> 20 min</div>
+                    <div><i class="fas fa-fire"></i> 180 cal</div>
+                  </div>
+                  <p>A 20-minute high-intensity cardio session to boost metabolism.</p>
+                  <button class="btn btn-custom-gradient w-100 start-workout-btn" 
+                          data-workout-name="Cardio Blast"
+                          data-workout-description="A 20-minute high-intensity cardio session to boost metabolism."
+                          data-workout-duration="20"
+                          data-workout-calories="180"
+                          data-workout-notes="">Start Workout</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="workout-suggestion-card">
+                <div class="workout-suggestion-header">
+                  <h5>Strength Training</h5>
+                  <span class="workout-level">{{ fitness_level }}</span>
+                </div>
+                <div class="workout-suggestion-body">
+                  <div class="workout-specs">
+                    <div><i class="fas fa-clock"></i> 40 min</div>
+                    <div><i class="fas fa-fire"></i> 200 cal</div>
+                  </div>
+                  <p>A 40-minute strength training session targeting major muscle groups.</p>
+                  <button class="btn btn-custom-gradient w-100 start-workout-btn" 
+                          data-workout-name="Strength Training"
+                          data-workout-description="A 40-minute strength training session targeting major muscle groups."
+                          data-workout-duration="40"
+                          data-workout-calories="200"
+                          data-workout-notes="">Start Workout</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workout Confirmation Modal -->
+  <div class="modal fade" id="workoutConfirmationModal" tabindex="-1" aria-labelledby="workoutConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="workoutConfirmationModalLabel">Start Workout</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="workout-confirmation-content">
+            <div class="workout-icon">
+              <i class="fas fa-dumbbell"></i>
+            </div>
+            <h4 id="modal-workout-name" class="mb-3"></h4>
+            
+            <div class="workout-details-container">
+              <div class="workout-detail-item">
+                <div class="detail-label">Duration:</div>
+                <div class="detail-value" id="modal-workout-duration"></div>
+              </div>
+              <div class="workout-detail-item">
+                <div class="detail-label">Calories:</div>
+                <div class="detail-value" id="modal-workout-calories"></div>
+              </div>
+            </div>
+            
+            <div class="confirmation-message">
+              <p>Ready to start this workout? Once completed, it will be logged to your account.</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-custom-gradient" id="confirmWorkoutBtn">
+            <i class="fas fa-check-circle me-1"></i> Log This Workout
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  /* Main Container */
+  .home-container {
+    min-height: 100vh;
+  }
+
+  /* Hero Section Styles */
+  .hero-section {
+    background: linear-gradient(135deg, #00CED1, #FF1493);
+    padding: 30px 0;
+    border-radius: 0 0 20px 20px;
+    margin-bottom: 50px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.1)" fill-opacity="1" d="M0,192L48,176C96,160,192,128,288,112C384,96,480,96,576,117.3C672,139,768,181,864,197.3C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+    background-size: cover;
+    background-position: bottom;
+    opacity: 0.3;
+  }
+
+  .welcome-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .quote-card {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 15px;
+    backdrop-filter: blur(5px);
+    margin-top: 20px;
+    border-left: 4px solid #FFD700;
+  }
+
+  .quote-text {
+    font-style: italic;
+    font-size: 1.1rem;
+    color: white;
+  }
+
+  .quote-author {
+    color: rgba(255, 255, 255, 0.9);
+    text-align: right;
+    margin-top: 10px;
+    font-size: 0.9rem;
+  }
+
+  .hero-image {
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: all 0.5s ease;
+  }
+
+  /* Stats Overview Card */
+  .stats-overview-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-top: -50px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .stats-card-section {
+    display: flex;
+    align-items: center;
+    padding: 25px 15px;
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .stats-card-section:last-child {
+    border-right: none;
+  }
+
+  .stats-icon-container {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00CED1, #FF1493);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    margin-right: 15px;
+    flex-shrink: 0;
+  }
+
+  .stats-data h3 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+    background: linear-gradient(45deg, #FFD700, #FF8C00, #FF1493, #00CED1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stats-data p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+  }
+
+  /* Main Content */
+  .main-content {
+    position: relative;
+    z-index: 5;
+  }
+
+  /* Dashboard Cards */
+  .dashboard-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    height: 100%;
+    transition: all 0.3s ease;
+  }
+
+  .dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .dashboard-card .card-header {
+    background: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 15px 20px;
+  }
+
+  .dashboard-card .card-header h4 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+  }
+
+  .dashboard-card .card-header h4 i {
+    color: #00CED1;
+    margin-right: 10px;
+  }
+
+  .dashboard-card .card-body {
+    padding: 20px;
+  }
+
+  /* Goal Items */
+  .goals-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .goal-item {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s ease;
+  }
+
+  .goal-item:hover {
+    background: #f0f2f5;
+    transform: translateX(5px);
+  }
+
+  .goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .goal-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .goal-target {
+    background: linear-gradient(45deg, #00CED1, #FF1493);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .goal-progress-container {
+    margin-bottom: 10px;
+  }
+
+  .progress {
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+  }
+
+  .progress-bar {
+    background: linear-gradient(45deg, #00CED1, #FF1493);
+  }
+
+  .progress-text {
+    font-size: 0.8rem;
+    color: #666;
+  }
+
+  .goal-dates {
+    display: flex;
+    justify-content: space-between;
+    color: #777;
+    font-size: 0.8rem;
+  }
+
+  /* Workout Cards */
+  .recent-workouts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .workout-card {
+    display: flex;
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .workout-card:hover {
+    background: #f0f2f5;
+    transform: translateX(5px);
+  }
+
+  .workout-icon-badge {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    flex-shrink: 0;
+    color: white;
+    font-size: 18px;
+  }
+
+  .cardio-icon {
+    background: linear-gradient(135deg, #FF4500, #FF8C00);
+  }
+
+  .strength-icon {
+    background: linear-gradient(135deg, #4B0082, #8A2BE2);
+  }
+
+  .yoga-icon {
+    background: linear-gradient(135deg, #32CD32, #228B22);
+  }
+
+  .general-icon {
+    background: linear-gradient(135deg, #00CED1, #1E90FF);
+  }
+
+  .workout-details {
+    flex: 1;
+  }
+
+  .workout-name {
+    margin: 0 0 5px 0;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .workout-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 3px;
+  }
+
+  .workout-stats i {
+    width: 18px;
+    margin-right: 5px;
+    color: #777;
+  }
+
+  .workout-date {
+    font-size: 0.8rem;
+    color: #888;
+  }
+
+  /* Achievement Section */
+  .achievement-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .achievement-badge {
+    display: flex;
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s ease;
+  }
+
+  .achievement-badge:hover {
+    background: #f0f2f5;
+    transform: translateX(5px);
+  }
+
+  .badge-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 15px;
+    flex-shrink: 0;
+  }
+
+  .badge-content {
+    flex: 1;
+  }
+
+  .badge-content h6 {
+    margin: 0 0 5px 0;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .badge-content p {
+    margin: 0 0 5px 0;
+    font-size: 0.85rem;
+    color: #555;
+  }
+
+  .badge-content small {
+    color: #888;
+  }
+
+  /* Social Feed Section */
+  .social-feed-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .feed-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s ease;
+  }
+
+  .feed-card:hover {
+    background: #f0f2f5;
+    transform: translateX(5px);
+  }
+
+  .feed-user-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 12px;
+  }
+
+  .user-details {
+    flex: 1;
+  }
+
+  .user-details h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .post-time {
+    font-size: 0.8rem;
+    color: #888;
+  }
+
+  .feed-content {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #333;
+  }
+
+  .feed-actions {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: #777;
+  }
+
+  .feed-actions i {
+    margin-right: 5px;
+  }
+
+  /* Workout Suggestion Cards */
+  .workout-suggestion-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    height: 100%;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .workout-suggestion-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .workout-suggestion-header {
+    background: linear-gradient(45deg, #00CED1, #FF1493);
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .workout-suggestion-header h5 {
+    margin: 0;
+    color: white;
+    font-weight: 600;
+  }
+
+  .workout-level {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+  }
+
+  .workout-suggestion-body {
+    padding: 15px;
+  }
+
+  .workout-specs {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .workout-specs i {
+    color: #00CED1;
+    margin-right: 5px;
+  }
+
+  .workout-suggestion-body p {
+    margin-bottom: 15px;
+    color: #555;
+    font-size: 0.9rem;
+  }
+
+  /* Empty States */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+    text-align: center;
+  }
+
+  .empty-state-img {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 15px;
+    opacity: 0.6;
+  }
+
+  .empty-state p {
+    color: #777;
+    margin-bottom: 12px;
+  }
+
+  /* Custom Gradient Outline Button */
+  .btn-custom-gradient-outline {
+    background: white;
+    color: #555;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .btn-custom-gradient-outline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: -2px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #00CED1, #FF1493);
+    z-index: -1;
+  }
+
+  .btn-custom-gradient-outline:hover {
+    transform: translateY(-2px);
+    color: #333;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Workout Modal Styles */
+  .workout-confirmation-content {
+    text-align: center;
+    padding: 15px;
+  }
+
+  .workout-confirmation-content .workout-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(45deg, #00CED1, #FF1493);
+    color: white;
+    font-size: 36px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .workout-details-container {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px 0;
+  }
+
+  .workout-detail-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 1rem;
+  }
+
+  .workout-detail-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .detail-label {
+    font-weight: 600;
+    color: #555;
+  }
+
+  .detail-value {
+    color: #333;
+  }
+
+  .confirmation-message {
+    margin-bottom: 15px;
+    color: #555;
+  }
+
+  /* Animation Classes */
+  .animate-fade-in {
+    animation: fadeIn 0.8s ease forwards;
+  }
+
+  .animate-fade-in-delay {
+    opacity: 0;
+    animation: fadeIn 0.8s ease forwards 0.3s;
+  }
+
+  .animate-fade-in-delay-2 {
+    opacity: 0;
+    animation: fadeIn 0.8s ease forwards 0.6s;
+  }
+
+  .animate-fade-in-delay-3 {
+    opacity: 0;
+    animation: fadeIn 0.8s ease forwards 0.9s;
+  }
+
+  .animate-slide-up {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: slideUp 0.8s ease forwards 0.4s;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 991.98px) {
+    .stats-card-section {
+      border-right: none;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .stats-card-section:last-child {
+      border-bottom: none;
+    }
+    .stats-overview-card {
+      margin-top: -30px;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .hero-section {
+      text-align: center;
+      padding-bottom: 50px;
+    }
+    .welcome-content {
+      padding: 0 20px;
+    }
+    .quote-card {
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 400px;
+    }
+    .stats-icon-container {
+      margin-right: 10px;
+      width: 40px;
+      height: 40px;
+      font-size: 16px;
+    }
+    .stats-data h3 {
+      font-size: 1.5rem;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Modal for workout confirmation
+    const workoutModal = new bootstrap.Modal(document.getElementById('workoutConfirmationModal'));
+    let currentWorkout = {};
+
+    // Handle start workout button clicks
+    document.querySelectorAll('.start-workout-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        currentWorkout = {
+          name: this.dataset.workoutName,
+          description: this.dataset.workoutDescription,
+          duration: this.dataset.workoutDuration,
+          calories: this.dataset.workoutCalories,
+          notes: this.dataset.workoutNotes
+        };
+
+        // Update modal content
+        document.getElementById('modal-workout-name').textContent = currentWorkout.name;
+        document.getElementById('modal-workout-duration').textContent = currentWorkout.duration + ' minutes';
+        document.getElementById('modal-workout-calories').textContent = currentWorkout.calories + ' calories';
+
+        // Show the modal
+        workoutModal.show();
+      });
+    });
+
+    // Handle workout confirmation
+    document.getElementById('confirmWorkoutBtn').addEventListener('click', function() {
+      // Show loading state
+      this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Logging...';
+      this.disabled = true;
+      
+      // Use fetch to log the workout
+      fetch('{% url "workouts.log_workout_ajax" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+          name: currentWorkout.name,
+          description: currentWorkout.description,
+          duration: currentWorkout.duration,
+          calories_burned: currentWorkout.calories,
+          notes: currentWorkout.notes
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Close the modal
+          workoutModal.hide();
+          
+          // Show success toast or notification
+          showNotification('Workout logged successfully!', 'success');
+          
+          // Reload the page after a short delay to show the new workout
+          setTimeout(() => window.location.reload(), 1500);
+        } else {
+          showNotification('Error: ' + data.message, 'error');
+          
+          // Reset button state
+          document.getElementById('confirmWorkoutBtn').innerHTML = '<i class="fas fa-check-circle me-1"></i> Log This Workout';
+          document.getElementById('confirmWorkoutBtn').disabled = false;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showNotification('There was an error logging your workout.', 'error');
+        
+        // Reset button state
+        document.getElementById('confirmWorkoutBtn').innerHTML = '<i class="fas fa-check-circle me-1"></i> Log This Workout';
+        document.getElementById('confirmWorkoutBtn').disabled = false;
+      });
+    });
+
+    // Simple notification function
+    function showNotification(message, type) {
+      // Create toast container if it doesn't exist
+      let toastContainer = document.querySelector('.toast-container');
+      if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+      }
+      
+      // Create toast
+      const toastEl = document.createElement('div');
+      toastEl.className = `toast align-items-center ${type === 'success' ? 'bg-success' : 'bg-danger'} text-white border-0`;
+      toastEl.setAttribute('role', 'alert');
+      toastEl.setAttribute('aria-live', 'assertive');
+      toastEl.setAttribute('aria-atomic', 'true');
+      
+      toastEl.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">
+            ${message}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      `;
+      
+      toastContainer.appendChild(toastEl);
+      
+      const toast = new bootstrap.Toast(toastEl, {
+        autohide: true,
+        delay: 3000
+      });
+      
+      toast.show();
+    }
+
+    // CSRF token helper function
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  });
+</script>
 {% endblock content %}

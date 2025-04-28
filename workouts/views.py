@@ -11,6 +11,7 @@ from .forms import WorkoutForm, WorkoutGoalForm
 from achievements.models import LeaderboardEntry, LeaderboardType
 from user.models import UserProfile
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -246,3 +247,141 @@ def delete_workout(request, workout_id):
     workout = get_object_or_404(Workout, id=workout_id, user=request.user)
     workout.delete()
     return JsonResponse({'success': True})
+
+@login_required
+@require_http_methods(["POST"])
+def log_workout_ajax(request):
+    """
+    AJAX endpoint for logging workouts directly from the home page dashboard
+    """
+    try:
+        # Parse JSON data from request body
+        data = json.loads(request.body)
+        
+        # Create new workout
+        workout = Workout(
+            user=request.user,
+            name=data.get('name', ''),
+            description=data.get('description', ''),
+            duration=int(data.get('duration', 0)),
+            calories_burned=int(data.get('calories_burned', 0)),
+            notes=data.get('notes', ''),
+            date=timezone.now()
+        )
+        workout.save()
+        
+        # Update user profile stats
+        user_profile = UserProfile.objects.get(user=request.user)
+        user_profile.workouts_completed += 1
+        user_profile.calories_burned += workout.calories_burned
+        user_profile.active_minutes += workout.duration
+        
+        # Update streak
+        today = timezone.now().date()
+        if user_profile.last_workout_date:
+            day_diff = (today - user_profile.last_workout_date).days
+            if day_diff <= 1:  # Either today or yesterday
+                user_profile.streak_days += 1 if day_diff == 1 else 0
+            else:
+                # Reset streak if more than 1 day has passed
+                user_profile.streak_days = 1
+        else:
+            user_profile.streak_days = 1
+            
+        user_profile.last_workout_date = today
+        user_profile.save()
+        
+        # Update leaderboards (code from log_workout view)
+        today = timezone.now().date()
+        week_start = today - timedelta(days=today.weekday())
+        
+        # Get all users with the same fitness level
+        users = UserProfile.objects.filter(fitness_level=user_profile.fitness_level)
+        
+        # Update calories burned leaderboard
+        user_scores = []
+        for profile in users:
+            total_calories = Workout.objects.filter(
+                user=profile.user,
+                date__date__gte=week_start,
+                date__date__lte=today
+            ).aggregate(total=Sum('calories_burned'))['total'] or 0
+            user_scores.append((profile.user, total_calories))
+        
+        # Sort users by score in descending order
+        user_scores.sort(key=lambda x: x[1], reverse=True)
+        
+        # Update leaderboard entries
+        for rank, (user, score) in enumerate(user_scores, 1):
+            entry, created = LeaderboardEntry.objects.update_or_create(
+                user=user,
+                leaderboard_type=LeaderboardType.CALORIES_BURNED,
+                week_start=week_start,
+                defaults={
+                    'score': score,
+                    'rank': rank
+                }
+            )
+        
+        # Update active minutes leaderboard
+        user_scores = []
+        for profile in users:
+            total_minutes = Workout.objects.filter(
+                user=profile.user,
+                date__date__gte=week_start,
+                date__date__lte=today
+            ).aggregate(total=Sum('duration'))['total'] or 0
+            user_scores.append((profile.user, total_minutes))
+        
+        # Sort users by score in descending order
+        user_scores.sort(key=lambda x: x[1], reverse=True)
+        
+        # Update leaderboard entries
+        for rank, (user, score) in enumerate(user_scores, 1):
+            entry, created = LeaderboardEntry.objects.update_or_create(
+                user=user,
+                leaderboard_type=LeaderboardType.ACTIVE_MINUTES,
+                week_start=week_start,
+                defaults={
+                    'score': score,
+                    'rank': rank
+                }
+            )
+        
+        # Update workouts completed leaderboard
+        user_scores = []
+        for profile in users:
+            workout_count = Workout.objects.filter(
+                user=profile.user,
+                date__date__gte=week_start,
+                date__date__lte=today
+            ).count()
+            user_scores.append((profile.user, workout_count))
+        
+        # Sort users by score in descending order
+        user_scores.sort(key=lambda x: x[1], reverse=True)
+        
+        # Update leaderboard entries
+        for rank, (user, score) in enumerate(user_scores, 1):
+            entry, created = LeaderboardEntry.objects.update_or_create(
+                user=user,
+                leaderboard_type=LeaderboardType.WORKOUTS_COMPLETED,
+                week_start=week_start,
+                defaults={
+                    'score': score,
+                    'rank': rank
+                }
+            )
+        
+        # Check for badge awards
+        user_profile.check_and_award_badges()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Workout logged successfully!'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)

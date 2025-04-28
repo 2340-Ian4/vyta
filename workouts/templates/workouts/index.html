@@ -475,147 +475,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Handle form submission
-    if (saveGoalBtn) {
-        saveGoalBtn.addEventListener('click', function() {
-            if (!currentGoalId) {
-                showNotification('Error: No goal selected for update.', 'error');
-                return;
-            }
-            
-            const formData = new FormData(updateGoalForm);
-            
-            // Log the form data for debugging
-            console.log('Sending form data:', Object.fromEntries(formData));
-            
-            fetch(`/workouts/api/goal/${currentGoalId}/update/`, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Response data:', data);
-                
-                if (data.success) {
-                    // Find the goal item in the DOM
-                    const goalItem = document.querySelector(`.goal-item[data-goal-id="${currentGoalId}"]`);
-                    console.log('Found goal item:', goalItem);
-                    
-                    if (goalItem) {
-                        // Update the progress bar
-                        const progressBar = goalItem.querySelector('.progress-bar');
-                        console.log('Found progress bar:', progressBar);
-                        
-                        if (progressBar) {
-                            // Get current progress value
-                            const currentProgress = parseInt(progressBar.getAttribute('aria-valuenow') || '0');
-                            const newProgress = data.progress;
-                            
-                            console.log(`Updating progress from ${currentProgress} to ${newProgress}`);
-                            
-                            // Update the progress bar
-                            progressBar.style.width = `${newProgress}%`;
-                            progressBar.textContent = `${newProgress}%`;
-                            progressBar.setAttribute('aria-valuenow', newProgress);
-                            
-                            // Update color based on progress level
-                            if (newProgress < 30) {
-                                progressBar.style.background = 'linear-gradient(45deg, #FF4500, #FF6347)';
-                            } else if (newProgress < 100) {
-                                progressBar.style.background = 'linear-gradient(45deg, #FFD700, #FF8C00)';
-                            } else {
-                                progressBar.style.background = 'linear-gradient(45deg, #32CD32, #228B22)';
-                                
-                                // Add completion effects
-                                goalItem.classList.add('goal-completed');
-                                
-                                // Show completion badge if it exists
-                                const completedBadge = goalItem.querySelector('.completed-badge');
-                                if (completedBadge) {
-                                    completedBadge.classList.remove('d-none');
-                                }
-                                
-                                // Hide edit button
-                                const updateBtn = goalItem.querySelector('.update-goal-btn');
-                                if (updateBtn) {
-                                    updateBtn.style.display = 'none';
-                                }
-                            }
-                        }
-                        
-                        // Update the goal type and target
-                        const titleElement = goalItem.querySelector('.card-title');
-                        if (titleElement) {
-                            titleElement.textContent = data.goal_type_display;
-                        }
-                        
-                        const targetText = goalItem.querySelector('.card-text');
-                        if (targetText) {
-                            targetText.textContent = `Target: ${data.target}`;
-                        }
-                    } else {
-                        console.error('Goal item not found in DOM');
-                    }
-                    
-                    // Close the modal
-                    updateGoalModal.hide();
-                    
-                    // Show success message
-                    showNotification('Goal updated successfully!', 'success');
-                } else {
-                    showNotification('Error updating goal: ' + (data.errors ? Object.values(data.errors).join(', ') : 'Unknown error'), 'error');
-                }
+    // Function to reload suggestions
+    function reloadSuggestions() {
+        const container = document.getElementById('suggestions-container');
+        container.innerHTML = `
+            <div class="col-12 text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading personalized workout suggestions...</p>
+            </div>
+        `;
+
+        fetch('/workouts/suggestions/')
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+                attachWorkoutButtonListeners();
             })
             .catch(error => {
-                console.error('Error updating goal:', error);
-                showNotification('Error updating goal. Please try again.', 'error');
+                console.error('Error loading suggestions:', error);
+                container.innerHTML = `
+                    <div class="col-12 text-center">
+                        <p class="text-danger">Error loading suggestions. Please try refreshing the page.</p>
+                    </div>
+                `;
             });
-        });
     }
-    
-    // Function to show notification
-    function showNotification(message, type = 'info') {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `alert alert-${type} notification`;
-        notification.textContent = message;
-        
-        // Add to the page
-        document.body.appendChild(notification);
-        
-        // Remove after 3 seconds
-        setTimeout(() => {
-            notification.classList.add('fade-out');
-            setTimeout(() => {
-                notification.remove();
-            }, 500);
-        }, 3000);
-    }
-    
-    // Helper function to get CSRF token
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    
+
     // Handle delete goal button clicks
     document.querySelectorAll('.delete-goal-btn').forEach(button => {
         button.addEventListener('click', function() {
@@ -630,13 +517,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Delete response:', data);
-                    
                     if (data.success) {
                         // Find and remove the goal item from the DOM
                         const goalItem = document.querySelector(`.goal-item[data-goal-id="${goalId}"]`);
-                        console.log('Found goal item to delete:', goalItem);
-                        
                         if (goalItem) {
                             goalItem.remove();
                             showNotification('Goal deleted successfully!', 'success');
@@ -650,9 +533,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                 `;
                             }
-                        } else {
-                            console.error('Goal item not found in DOM');
-                            showNotification('Error: Goal item not found in DOM', 'error');
+                            
+                            // Reload suggestions after goal deletion
+                            reloadSuggestions();
                         }
                     } else {
                         showNotification('Error deleting goal: ' + (data.errors ? Object.values(data.errors).join(', ') : 'Unknown error'), 'error');
@@ -665,7 +548,116 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
+    // Handle goal update
+    if (saveGoalBtn) {
+        saveGoalBtn.addEventListener('click', function() {
+            if (!currentGoalId) {
+                showNotification('Error: No goal selected for update.', 'error');
+                return;
+            }
+            
+            const formData = new FormData(updateGoalForm);
+            
+            fetch(`/workouts/api/goal/${currentGoalId}/update/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the goal item in the DOM
+                    const goalItem = document.querySelector(`.goal-item[data-goal-id="${currentGoalId}"]`);
+                    if (goalItem) {
+                        // Update the goal type and target
+                        const titleElement = goalItem.querySelector('.card-title');
+                        if (titleElement) {
+                            titleElement.textContent = data.goal_type_display;
+                        }
+                        
+                        const targetText = goalItem.querySelector('.card-text');
+                        if (targetText) {
+                            targetText.textContent = `Target: ${data.target}`;
+                        }
+                        
+                        // Update progress bar
+                        const progressBar = goalItem.querySelector('.progress-bar');
+                        if (progressBar) {
+                            progressBar.style.width = `${data.progress}%`;
+                            progressBar.textContent = `${data.progress}%`;
+                            progressBar.setAttribute('aria-valuenow', data.progress);
+                        }
+                    }
+                    
+                    // Close the modal
+                    updateGoalModal.hide();
+                    
+                    // Show success message
+                    showNotification('Goal updated successfully!', 'success');
+                    
+                    // Reload suggestions after goal update
+                    reloadSuggestions();
+                } else {
+                    showNotification('Error updating goal: ' + (data.errors ? Object.values(data.errors).join(', ') : 'Unknown error'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating goal:', error);
+                showNotification('Error updating goal. Please try again.', 'error');
+            });
+        });
+    }
+
+    // Handle progress update button clicks
+    document.querySelectorAll('.update-progress-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const goalId = this.getAttribute('data-goal-id');
+            const newProgress = prompt('Enter new progress percentage (0-100):');
+            
+            if (newProgress !== null) {
+                const progress = parseInt(newProgress);
+                if (isNaN(progress) || progress < 0 || progress > 100) {
+                    showNotification('Please enter a valid number between 0 and 100', 'error');
+                    return;
+                }
+
+                fetch(`/workouts/api/goal/${goalId}/update-progress/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ progress: progress })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update progress bar
+                        const progressBar = document.querySelector(`.goal-item[data-goal-id="${goalId}"] .progress-bar`);
+                        progressBar.style.width = `${progress}%`;
+                        progressBar.textContent = `${progress}%`;
+                        progressBar.setAttribute('aria-valuenow', progress);
+                        
+                        // Show success message
+                        showNotification('Progress updated successfully!', 'success');
+                        
+                        // Reload suggestions after progress update
+                        reloadSuggestions();
+                    } else {
+                        showNotification('Error updating progress: ' + data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error updating progress. Please try again.', 'error');
+                });
+            }
+        });
+    });
+
     // Initialize workout confirmation modal
     const workoutModal = new bootstrap.Modal(document.getElementById('workoutConfirmationModal'));
     let currentWorkout = null;
@@ -732,50 +724,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Handle progress update button clicks
-    document.querySelectorAll('.update-progress-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const goalId = this.getAttribute('data-goal-id');
-            const newProgress = prompt('Enter new progress percentage (0-100):');
-            
-            if (newProgress !== null) {
-                const progress = parseInt(newProgress);
-                if (isNaN(progress) || progress < 0 || progress > 100) {
-                    showNotification('Please enter a valid number between 0 and 100', 'error');
-                    return;
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
-
-                // Send progress update to server
-                fetch(`/workouts/api/goal/${goalId}/update-progress/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({ progress: progress })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update progress bar
-                        const progressBar = document.querySelector(`.goal-item[data-goal-id="${goalId}"] .progress-bar`);
-                        progressBar.style.width = `${progress}%`;
-                        progressBar.textContent = `${progress}%`;
-                        progressBar.setAttribute('aria-valuenow', progress);
-                        
-                        // Show success message
-                        showNotification('Progress updated successfully!', 'success');
-                    } else {
-                        showNotification('Error updating progress: ' + data.error, 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Error updating progress. Please try again.', 'error');
-                });
             }
-        });
-    });
+        }
+        return cookieValue;
+    }
 
     // Load suggestions asynchronously
     fetch('/workouts/suggestions/')

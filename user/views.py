@@ -7,6 +7,7 @@ from django.db.models import Sum, Count
 from .models import UserProfile, Complaint, UserBadge
 from social.models import UserConnection
 from workouts.models import WorkoutGoal, Workout
+from django.http import JsonResponse
 
 @login_required
 def index(request):
@@ -161,3 +162,41 @@ def submit_complaint(request):
         return redirect('user.index')
     
     return redirect('user.index')
+
+@login_required
+def update_profile(request):
+    """Update user profile information."""
+    if request.method == 'POST':
+        try:
+            user = request.user
+            profile = user.profile
+            
+            # Update user information
+            user.first_name = request.POST.get('first_name', user.first_name)
+            user.last_name = request.POST.get('last_name', user.last_name)
+            user.save()
+            
+            # Update profile information
+            profile.fitness_level = request.POST.get('fitness_level', profile.fitness_level)
+            profile.location = request.POST.get('location', profile.location)
+            profile.bio = request.POST.get('bio', profile.bio)
+            
+            # Handle profile picture
+            if 'profile_pic' in request.FILES:
+                profile.profile_pic = request.FILES['profile_pic']
+            
+            profile.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Profile updated successfully'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            })
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method'
+    })

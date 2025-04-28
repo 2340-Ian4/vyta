@@ -223,6 +223,8 @@ def update_goal(request, goal_id):
     
     if form.is_valid():
         goal = form.save()
+        # Clear workout suggestions
+        WorkoutSuggestion.objects.filter(user=request.user).delete()
         return JsonResponse({
             'success': True,
             'progress': goal.progress,
@@ -243,6 +245,8 @@ def add_goal(request):
         goal = form.save(commit=False)
         goal.user = request.user
         goal.save()
+        # Clear workout suggestions
+        WorkoutSuggestion.objects.filter(user=request.user).delete()
         return JsonResponse({
             'success': True,
             'goal_id': goal.id,
@@ -262,6 +266,8 @@ def add_goal(request):
 def delete_goal(request, goal_id):
     goal = get_object_or_404(WorkoutGoal, id=goal_id, user=request.user)
     goal.delete()
+    # Clear workout suggestions
+    WorkoutSuggestion.objects.filter(user=request.user).delete()
     return JsonResponse({'success': True})
 
 @login_required
@@ -473,9 +479,8 @@ def update_goal_progress(request, goal_id):
         goal.progress = progress
         goal.save()
         
-        # Clear cached suggestions when goal is updated
-        if 'workout_suggestions' in request.session:
-            del request.session['workout_suggestions']
+        # Clear workout suggestions
+        WorkoutSuggestion.objects.filter(user=request.user).delete()
         
         return JsonResponse({'success': True})
     except WorkoutGoal.DoesNotExist:

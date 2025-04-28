@@ -9,7 +9,7 @@
             <div class="card shadow-sm animate-slide-up">
                 <div class="card-header" style="background: linear-gradient(45deg, #00CED1, #FF1493); color: white; display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="mb-0">Progress Towards Goals</h3>
-                    <a href="{% url 'workouts.goal' %}" class="btn btn-light btn-sm">
+                    <a href="{% url 'workouts.set_goal' %}" class="btn btn-light btn-sm">
                         <i class="fas fa-plus"></i> Add Goal
                     </a>
                 </div>
@@ -63,7 +63,7 @@
                     <h3 class="mb-0">Quick Actions</h3>
                 </div>
                 <div class="card-body">
-                    <a href="{% url 'workouts.log' %}" class="btn btn-custom-gradient mb-3 animate-fade-in">Log New Workout</a>
+                    <a href="{% url 'workouts.log_workout' %}" class="btn btn-custom-gradient mb-3 animate-fade-in">Log New Workout</a>
                     <a href="{% url 'workouts.history' %}" class="btn btn-custom-gradient mb-3 animate-fade-in-delay">View History</a>
                 </div>
             </div>

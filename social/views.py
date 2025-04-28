@@ -327,7 +327,8 @@ def search_users(request):
     if query:
         users = User.objects.filter(username__icontains=query).exclude(id=request.user.id)
     else:
-        users = User.objects.none()
+        # Show all users instead of an empty queryset when no query is provided
+        users = User.objects.exclude(id=request.user.id)
     
     return render(request, 'social/search_results.html', {
         'search_results': users,

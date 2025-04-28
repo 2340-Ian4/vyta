@@ -1,31 +1,79 @@
+{% extends 'base.html' %}
 {% load static %}
 
-{% if search_results %}
-<div class="search-results">
-    <h6 class="text-gradient mb-3">Search Results</h6>
-    {% for user in search_results %}
-    <div class="d-flex align-items-center mb-3 p-2 rounded hover-bg">
-        <a href="{% url 'social.profile' user.id %}" class="d-flex align-items-center text-decoration-none text-dark w-100">
-            <img src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
-                 alt="{{ user.username }}'s Profile Picture" 
-                 class="rounded-circle me-2" 
-                 style="width: 40px; height: 40px; object-fit: cover;">
-            <div class="flex-grow-1">
-                <h6 class="mb-0 text-truncate" style="max-width: 200px;">{{ user.username }}</h6>
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h4 class="mb-4">Find Users</h4>
+                    
+                    <!-- Search Form -->
+                    <form method="GET" action="{% url 'social.search_users' %}" class="mb-4">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" placeholder="Search by username" value="{{ request.GET.q|default:'' }}">
+                            <button class="btn btn-custom-gradient" type="submit">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Results Section -->
+                    {% if search_results %}
+                    <div class="search-results">
+                        <h6 class="text-gradient mb-3">{% if request.GET.q %}Search Results for "{{ request.GET.q }}"{% else %}All Users{% endif %}</h6>
+                        {% for user in search_results %}
+                        <div class="d-flex align-items-center mb-3 p-2 rounded hover-bg">
+                            <a href="{% url 'social.profile' id=user.id %}" class="d-flex align-items-center text-decoration-none text-dark w-100">
+                                <img src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}{% static 'img/default-profile.png' %}{% endif %}" 
+                                     alt="{{ user.username }}'s Profile Picture" 
+                                     class="rounded-circle me-2" 
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">{{ user.username }}</h6>
+                                    <small class="text-muted">{{ user.profile.bio|truncatechars:50 }}</small>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-search fa-3x mb-3"></i>
+                        <p>No users found matching "{{ request.GET.q }}"</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-        </a>
+        </div>
     </div>
-    {% endfor %}
 </div>
-{% else %}
-<div class="text-center text-muted">
-    <p>No users found</p>
-</div>
-{% endif %}
 
 <style>
 .hover-bg:hover {
     background-color: rgba(0, 206, 209, 0.1);
     transition: background-color 0.2s ease;
 }
-</style> 
+
+.text-gradient {
+    background: linear-gradient(45deg, #00CED1, #FF1493);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    display: inline-block;
+}
+
+.btn-custom-gradient {
+    background: linear-gradient(45deg, #00CED1, #FF1493);
+    color: white;
+    border: none;
+}
+
+.btn-custom-gradient:hover {
+    background: linear-gradient(45deg, #FF1493, #00CED1);
+    color: white;
+}
+</style>
+{% endblock %} 

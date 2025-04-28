@@ -124,48 +124,12 @@
                     <h3 class="mb-0" style="font-weight: bold; font-size: 1.5rem;">Suggested Workouts</h3>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="card h-100 animate-slide-up-delay-1">
-                                <div class="card-body">
-                                    <h5 class="card-title">Full Body Workout</h5>
-                                    <p class="card-text">A 30 minute full-body workout focusing on strength and endurance.</p>
-                                    <button class="btn btn-custom-gradient start-workout-btn" 
-                                            data-workout-name="Full Body Workout"
-                                            data-workout-description="A 30 minute full-body workout focusing on strength and endurance."
-                                            data-workout-duration="30"
-                                            data-workout-calories="150"
-                                            data-workout-notes="">Start Workout</button>
-                                </div>
+                    <div id="suggestions-container" class="row">
+                        <div class="col-12 text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
                             </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card h-100 animate-slide-up-delay-2">
-                                <div class="card-body">
-                                    <h5 class="card-title">Cardio Blast</h5>
-                                    <p class="card-text">A 20 minute high-intensity cardio session to boost metabolism.</p>
-                                    <button class="btn btn-custom-gradient start-workout-btn"
-                                            data-workout-name="Cardio Blast"
-                                            data-workout-description="A 20 minute high-intensity cardio session to boost metabolism."
-                                            data-workout-duration="20"
-                                            data-workout-calories="200"
-                                            data-workout-notes="">Start Workout</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card h-100 animate-slide-up-delay-3">
-                                <div class="card-body">
-                                    <h5 class="card-title">Strength Training</h5>
-                                    <p class="card-text">A 40 minute strength-training session targeting major muscle groups.</p>
-                                    <button class="btn btn-custom-gradient start-workout-btn"
-                                            data-workout-name="Strength Training"
-                                            data-workout-description="A 40 minute strength-training session targeting major muscle groups."
-                                            data-workout-duration="40"
-                                            data-workout-calories="130"
-                                            data-workout-notes="">Start Workout</button>
-                                </div>
-                            </div>
+                            <p class="mt-2">Loading personalized workout suggestions...</p>
                         </div>
                     </div>
                 </div>
@@ -263,6 +227,10 @@
                     <div class="mb-3">
                         <p class="mb-2"><strong>Workout:</strong></p>
                         <p class="text-muted" id="modal-workout-name"></p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="mb-2"><strong>Description:</strong></p>
+                        <p class="text-muted" id="modal-workout-description"></p>
                     </div>
                     <div class="mb-3">
                         <p class="mb-2"><strong>Duration:</strong></p>
@@ -654,30 +622,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Load suggestions asynchronously
+    fetch('/workouts/suggestions/')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('suggestions-container').innerHTML = html;
+            // Reattach event listeners after loading new content
+            attachWorkoutButtonListeners();
+        })
+        .catch(error => {
+            console.error('Error loading suggestions:', error);
+            document.getElementById('suggestions-container').innerHTML = `
+                <div class="col-12 text-center">
+                    <p class="text-danger">Error loading suggestions. Please try refreshing the page.</p>
+                </div>
+            `;
+        });
+
     // Initialize workout confirmation modal
     const workoutModal = new bootstrap.Modal(document.getElementById('workoutConfirmationModal'));
     let currentWorkout = null;
 
-    // Add click event listeners to all start workout buttons
-    document.querySelectorAll('.start-workout-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            currentWorkout = {
-                name: this.dataset.workoutName,
-                description: this.dataset.workoutDescription,
-                duration: this.dataset.workoutDuration,
-                calories: this.dataset.workoutCalories,
-                notes: this.dataset.workoutNotes
-            };
+    function attachWorkoutButtonListeners() {
+        // Add click event listeners to all start workout buttons
+        document.querySelectorAll('.start-workout-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                currentWorkout = {
+                    name: this.dataset.workoutName,
+                    description: this.dataset.workoutDescription,
+                    duration: this.dataset.workoutDuration,
+                    calories: this.dataset.workoutCalories,
+                    notes: this.dataset.workoutNotes
+                };
 
-            // Update modal content
-            document.getElementById('modal-workout-name').textContent = currentWorkout.name;
-            document.getElementById('modal-workout-duration').textContent = currentWorkout.duration;
-            document.getElementById('modal-workout-calories').textContent = currentWorkout.calories;
+                // Update modal content
+                document.getElementById('modal-workout-name').textContent = currentWorkout.name;
+                document.getElementById('modal-workout-description').textContent = currentWorkout.description;
+                document.getElementById('modal-workout-duration').textContent = currentWorkout.duration + ' minutes';
+                document.getElementById('modal-workout-calories').textContent = currentWorkout.calories + ' calories';
 
-            // Show the modal
-            workoutModal.show();
+                // Show the modal
+                workoutModal.show();
+            });
         });
-    });
+    }
 
     // Handle workout confirmation
     document.getElementById('confirmWorkoutBtn').addEventListener('click', function() {

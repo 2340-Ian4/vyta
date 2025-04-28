@@ -10,6 +10,7 @@ from .models import Workout, WorkoutGoal
 from .forms import WorkoutForm, WorkoutGoalForm
 from achievements.models import LeaderboardEntry, LeaderboardType
 from user.models import UserProfile
+from .gemini_api import get_workout_suggestions
 import logging
 import json
 
@@ -20,17 +21,9 @@ def index(request):
     workouts = Workout.objects.filter(user=request.user)[:5]  # Get recent workouts
     goals = WorkoutGoal.objects.filter(user=request.user)  # Get all goals for the user
     
-    # AI-generated workout suggestions (placeholder for now)
-    ai_workouts = [
-        {'name': 'Full Body Workout', 'description': 'A 30-minute full-body workout focusing on strength and endurance.'},
-        {'name': 'Cardio Blast', 'description': 'A 20-minute high-intensity cardio session to boost metabolism.'},
-        {'name': 'Strength Training', 'description': 'A 40-minute strength training session targeting major muscle groups.'},
-    ]
-    
     return render(request, 'workouts/index.html', {
         'workouts': workouts,
         'goals': goals,
-        'ai_workouts': ai_workouts,
     })
 
 @login_required
@@ -415,3 +408,26 @@ def log_workout_ajax(request):
             'success': False,
             'message': str(e)
         }, status=400)
+
+@login_required
+def get_suggestions(request):
+    """View to get AI-generated workout suggestions"""
+    try:
+        # Get user profile for personalized suggestions
+        user_profile = UserProfile.objects.get(user=request.user)
+        
+        # Get user's active goals
+        goals = WorkoutGoal.objects.filter(user=request.user)
+        goals_info = [f"{goal.get_goal_type_display()}: {goal.target} ({goal.progress}% complete)" for goal in goals]
+        
+        # Get AI-generated workout suggestions
+        logger.info("Fetching workout suggestions for user: %s", request.user.username)
+        ai_workouts = get_workout_suggestions(user_profile, goals_info)
+        logger.info("Received %d workout suggestions", len(ai_workouts))
+        
+        return render(request, 'workouts/suggestions.html', {
+            'ai_workouts': ai_workouts,
+        })
+    except Exception as e:
+        logger.error(f"Error getting suggestions: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)

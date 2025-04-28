@@ -1,0 +1,7 @@
+Django==5.1.7
+google-generativeai==0.3.2
+python-dotenv==1.0.1
+Pillow==11.2.1  # Current version in your environment
+django-crispy-forms==2.1
+crispy-bootstrap5==2024.2
+python-dateutil==2.8.2 

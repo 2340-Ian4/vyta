@@ -707,15 +707,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-                return response.text();
-            })
-            .then(() => {
-                // Show success notification
-                showNotification('Workout logged successfully!', 'success');
                 // Hide the modal
                 workoutModal.hide();
-                // Reload the page to update the history
-                setTimeout(() => window.location.reload(), 1500);
+                // Reload the page
+                window.location.reload();
             })
             .catch(error => {
                 console.error('Error:', error);

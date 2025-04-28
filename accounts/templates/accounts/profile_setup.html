@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center" style="background-color: #F8F9FA;">
+  <div class="row justify-content-center w-100">
+    <div class="col-md-8 col-lg-6">
+      <div class="p-4" style="background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h2 class="text-center mb-4" style="color: #00CED1;">Complete Your Profile</h2>
+        {% if template_data.error %}
+        <div class="alert alert-danger" role="alert">
+          {{ template_data.error }}
+        </div>
+        {% endif %}
+        <form method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          
+          <div class="mb-3">
+            <label for="id_bio" class="form-label" style="color: #00CED1;">Bio (Optional)</label>
+            <textarea name="bio" id="id_bio" class="form-control" rows="3" style="border-color: #FF8C00;">{{ form.bio.value|default:'' }}</textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="id_location" class="form-label" style="color: #00CED1;">Location</label>
+            <input type="text" name="location" id="id_location" class="form-control" value="{{ form.location.value|default:'' }}" style="border-color: #FF8C00;">
+          </div>
+
+          <div class="mb-3">
+            <label for="id_fitness_level" class="form-label" style="color: #00CED1;">Fitness Level</label>
+            <select name="fitness_level" id="id_fitness_level" class="form-control" style="border-color: #FF8C00;">
+              <option value="">Select your fitness level</option>
+              <option value="beginner" {% if form.fitness_level.value == 'beginner' %}selected{% endif %}>Beginner</option>
+              <option value="intermediate" {% if form.fitness_level.value == 'intermediate' %}selected{% endif %}>Intermediate</option>
+              <option value="advanced" {% if form.fitness_level.value == 'advanced' %}selected{% endif %}>Advanced</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="id_profile_pic" class="form-label" style="color: #00CED1;">Profile Picture (Optional)</label>
+            <input type="file" name="profile_pic" id="id_profile_pic" class="form-control" style="border-color: #FF8C00;">
+          </div>
+
+          <hr class="my-4" style="border-color: #FF8C00;">
+          <h4 class="mb-3" style="color: #00CED1;">Set Your First Goal</h4>
+
+          <div class="mb-3">
+            <label for="id_goal_type" class="form-label" style="color: #00CED1;">Goal Type</label>
+            <select name="goal_type" id="id_goal_type" class="form-control" style="border-color: #FF8C00;">
+              <option value="">Select your goal type</option>
+              <option value="weight_loss" {% if form.goal_type.value == 'weight_loss' %}selected{% endif %}>Weight Loss</option>
+              <option value="muscle_gain" {% if form.goal_type.value == 'muscle_gain' %}selected{% endif %}>Muscle Gain</option>
+              <option value="endurance" {% if form.goal_type.value == 'endurance' %}selected{% endif %}>Endurance</option>
+              <option value="flexibility" {% if form.goal_type.value == 'flexibility' %}selected{% endif %}>Flexibility</option>
+              <option value="general_fitness" {% if form.goal_type.value == 'general_fitness' %}selected{% endif %}>General Fitness</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="id_target" class="form-label" style="color: #00CED1;">Target</label>
+            <input type="text" name="target" id="id_target" class="form-control" value="{{ form.target.value|default:'' }}" placeholder="e.g., Lose 10 pounds, Run 5 miles, etc." style="border-color: #FF8C00;">
+          </div>
+
+          <div class="mb-3">
+            <label for="id_end_date" class="form-label" style="color: #00CED1;">End Date (Optional)</label>
+            <input type="date" name="end_date" id="id_end_date" class="form-control" value="{{ form.end_date.value|default:'' }}" style="border-color: #FF8C00;">
+          </div>
+
+          <div class="text-center">
+            <button type="submit" class="btn btn-custom-gradient w-100">Complete Profile</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

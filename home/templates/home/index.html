@@ -251,7 +251,7 @@
               <div class="empty-state">
                 <img src="{% static 'img/social-empty.svg' %}" alt="No Posts" class="empty-state-img" onerror="this.src='https://via.placeholder.com/120x120?text=Social'">
                 <p>Follow other users to see their posts in your feed!</p>
-                <a href="{% url 'social.search_users' %}" class="btn btn-custom-gradient mt-2">Find Users</a>
+                <a href="{% url 'social.feed' %}" class="btn btn-custom-gradient mt-2">Go to Social</a>
               </div>
             {% endif %}
           </div>
@@ -1053,6 +1053,7 @@
       // Add click event listeners to all start workout buttons
       document.querySelectorAll('.start-workout-btn').forEach(button => {
         button.addEventListener('click', function() {
+          // Get workout data from button attributes
           const workoutData = {
             name: this.dataset.workoutName,
             description: this.dataset.workoutDescription,
@@ -1061,34 +1062,11 @@
             notes: this.dataset.workoutNotes
           };
 
-          // Create FormData object
-          const formData = new FormData();
-          formData.append('name', workoutData.name);
-          formData.append('description', workoutData.description);
-          formData.append('duration', workoutData.duration);
-          formData.append('calories_burned', workoutData.calories);
-          formData.append('notes', workoutData.notes || '');
-          formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+          // Store workout data in sessionStorage
+          sessionStorage.setItem('pendingWorkout', JSON.stringify(workoutData));
 
-          // Send workout data to server
-          fetch('/workouts/log/ajax/', {
-            method: 'POST',
-            body: formData
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              showNotification('Workout logged successfully!', 'success');
-              // Reload the page to update the history
-              setTimeout(() => window.location.reload(), 1500);
-            } else {
-              showNotification('Error logging workout: ' + data.message, 'error');
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            showNotification('Error logging workout. Please try again.', 'error');
-          });
+          // Redirect to workouts page
+          window.location.href = '/workouts/';
         });
       });
     }

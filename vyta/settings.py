@@ -25,12 +25,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l627pitt%@y@oh=m9_$+d3dfer=!ohw$lo)oi**%a*8o3kxjy2'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-l627pitt%@y@oh=m9_$+d3dfer=!ohw$lo)oi**%a*8o3kxjy2')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# Gemini API Configuration
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
 
 # Application definition
@@ -130,13 +133,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = os.getenv('STATIC_URL', 'static/')
 STATICFILES_DIRS = [
     BASE_DIR / 'vyta/static/',
 ]
 
 # Media files (User uploaded files)
-MEDIA_URL = '/media/'
+MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
@@ -150,8 +153,8 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'  # Redirect to login after logout
 # Ensure sessions are stored in the database
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
-SESSION_COOKIE_AGE = 1209600  # 2 weeks
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = int(os.getenv('SESSION_COOKIE_AGE', '1209600'))  # 2 weeks
+SESSION_EXPIRE_AT_BROWSER_CLOSE = os.getenv('SESSION_EXPIRE_AT_BROWSER_CLOSE', 'False').lower() == 'true'
 
 # Logging configuration
 LOGGING = {

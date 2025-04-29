@@ -172,6 +172,9 @@
     </div>
 </div>
 
+<!-- Footer trigger -->
+<div class="footer-trigger"></div>
+
 <!-- Create Post Modal -->
 <div class="modal fade" id="createPostModal" tabindex="-1">
     <div class="modal-dialog">
@@ -350,6 +353,36 @@ html, body {
     border-color: #00CED1;
     box-shadow: 0 0 0 0.2rem rgba(0, 206, 209, 0.25);
 }
+
+/* Footer hover activation styles */
+.ms-footer {
+    position: fixed;
+    bottom: -100%; /* Start hidden below the viewport */
+    left: 0;
+    width: 100%;
+    transition: bottom 0.3s ease;
+    z-index: 99;
+}
+
+.footer-trigger {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    z-index: 98;
+}
+
+/* Show footer when hovering over trigger or footer */
+.footer-trigger:hover ~ .ms-footer,
+.ms-footer:hover {
+    bottom: 0;
+}
+
+/* Add JavaScript to handle footer visibility */
+.footer-visible {
+    bottom: 0 !important;
+}
 </style>
 
 <script>
@@ -433,6 +466,34 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }, 300); // 300ms debounce
     });
+
+    // Add footer visibility logic
+    const footer = document.querySelector('.ms-footer');
+    const footerTrigger = document.querySelector('.footer-trigger');
+    
+    if (footer && footerTrigger) {
+        // Show footer when hovering over trigger
+        footerTrigger.addEventListener('mouseenter', function() {
+            footer.classList.add('footer-visible');
+        });
+        
+        // Hide footer when mouse leaves both trigger and footer
+        footerTrigger.addEventListener('mouseleave', function() {
+            setTimeout(function() {
+                if (!footer.matches(':hover')) {
+                    footer.classList.remove('footer-visible');
+                }
+            }, 100);
+        });
+        
+        footer.addEventListener('mouseleave', function() {
+            setTimeout(function() {
+                if (!footerTrigger.matches(':hover')) {
+                    footer.classList.remove('footer-visible');
+                }
+            }, 100);
+        });
+    }
 });
 </script>
 {% endblock %}

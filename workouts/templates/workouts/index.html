@@ -775,6 +775,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => this.classList.remove('fa-spin'), 1000);
             });
     });
+
+    // Check for pending workout data
+    const pendingWorkout = sessionStorage.getItem('pendingWorkout');
+    if (pendingWorkout) {
+        const workoutData = JSON.parse(pendingWorkout);
+        
+        // Update modal content
+        document.getElementById('modal-workout-name').textContent = workoutData.name;
+        document.getElementById('modal-workout-description').textContent = workoutData.description;
+        document.getElementById('modal-workout-duration').textContent = workoutData.duration + ' minutes';
+        document.getElementById('modal-workout-calories').textContent = workoutData.calories + ' calories';
+
+        // Store workout data for the confirm button
+        currentWorkout = workoutData;
+
+        // Show the modal
+        workoutModal.show();
+
+        // Clear the pending workout data
+        sessionStorage.removeItem('pendingWorkout');
+    }
 });
 </script>
 {% endblock content %}
